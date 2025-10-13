@@ -1,428 +1,551 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="nl">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Cookie Shape Generator</title>
-    <meta name="theme-color" content="#0f172a" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Koekjesvorm Generator</title>
     <style>
-      :root { --gap: 12px; }
-      * { box-sizing: border-box; }
-      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:#0f172a; color:#e2e8f0; }
-      header { padding: 16px; border-bottom: 1px solid #1f2937; position: sticky; top: 0; background:#0f172a; z-index: 10; }
-      h1 { font-size: 1.1rem; margin: 0; }
-      main { display: grid; gap: var(--gap); padding: 16px; max-width: 960px; margin: 0 auto; }
-      .card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 12px; }
-      .controls { display: grid; gap: 12px; }
-      .row { display: grid; gap: 8px; }
-      .row.inline { grid-template-columns: 1fr auto; align-items: end; gap: 8px; }
-      label { font-size: .9rem; color:#cbd5e1; }
-      input[type="file"], select, button, .btn { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #334155; background:#0b1220; color:#e2e8f0; }
-      button[disabled] { opacity: .6; }
-      .muted { color:#94a3b8; font-size: .85rem; }
-      .danger { color:#fda4af; }
-      .success { color:#86efac; }
-      .viewer { height: 52vh; min-height: 320px; border-radius: 16px; overflow: hidden; border: 1px solid #1f2937; }
-      .stack { display: grid; gap: 6px; }
-      .debug { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0b1220; border:1px dashed #334155; border-radius: 12px; padding: 10px; max-height: 200px; overflow:auto; }
-      .chip { display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid #334155; font-size:.75rem; margin-right:6px; }
-      footer { padding: 16px; text-align: center; color:#94a3b8; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 26px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .upload-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .upload-btn {
+            padding: 50px 20px;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .upload-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .upload-btn:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+        }
+        
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-label {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        #preview {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        canvas {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .secondary-btn {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
+        }
+        
+        .info-box {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        
+        .info-box li {
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .upload-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
-  </head>
-  <body>
-    <header>
-      <h1>🍪 Cookie Shape Generator</h1>
-    </header>
-    <main>
-      <!-- Upload & acties -->
-      <section class="card controls" aria-label="Bestandsupload en acties">
-        <div class="row">
-          <label for="file">Upload foto (lijnentekening) <span class="muted">– zwart/blauw op wit, gesloten contour</span></label>
-          <input id="file" type="file" accept="image/*" capture="environment" />
+</head>
+<body>
+    <div class="container">
+        <h1>🍪 Koekjesvorm Generator</h1>
+        <p class="subtitle">Upload een lijntekening en maak er een 3D koekjesvorm van!</p>
+        
+        <div class="upload-buttons">
+            <div class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <div class="upload-label">Van apparaat</div>
+            </div>
+            <div class="upload-btn" onclick="document.getElementById('cameraInput').click()">
+                <div class="upload-icon">📷</div>
+                <div class="upload-label">Maak foto</div>
+            </div>
         </div>
-
-        <div class="row inline">
-          <button id="btnProcess" disabled>📷 Converteer naar 3D</button>
-          <button id="btnDownload" disabled>⬇️ Download STL</button>
+        
+        <input type="file" id="fileInput" accept="image/*">
+        <input type="file" id="cameraInput" accept="image/*" capture="environment">
+        
+        <div id="preview">
+            <canvas id="canvas"></canvas>
         </div>
-
-        <div class="stack">
-          <div id="status" class="muted">Nog geen bestand gekozen.</div>
-          <div>
-            <span class="chip">Lijndikte: 1.5 mm</span>
-            <span class="chip">Basishoogte: 10 mm</span>
-            <span class="chip">Toeslag: 3 mm × 2 mm</span>
-          </div>
+        
+        <div class="button-group" id="actionButtons" style="display: none;">
+            <button class="secondary-btn" onclick="resetApp()">Opnieuw</button>
+            <button id="generateBtn" onclick="generateSTL()">Download STL</button>
         </div>
-      </section>
-
-      <!-- 3D viewer -->
-      <section class="card" aria-label="3D viewer">
-        <div id="viewer" class="viewer"></div>
-      </section>
-
-      <!-- Debug & validatie -->
-      <section class="card" aria-label="Debug en validatie">
-        <div class="stack">
-          <strong>Debug & validatie</strong>
-          <div id="debug" class="debug" role="status" aria-live="polite">Wacht op invoer…</div>
-          <div id="errors" class="danger"></div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="info-box">
+            <strong>💡 Tips:</strong>
+            <ul>
+                <li>Gebruik een zwarte of blauwe lijn op witte achtergrond</li>
+                <li>Zorg voor een gesloten contour (bijv. cirkel, vierkant)</li>
+                <li>Het model wordt 10mm hoog met een 2mm dikke rand</li>
+            </ul>
         </div>
-      </section>
-    </main>
+    </div>
 
-    <footer>
-      <small>Werkt offline op GitHub Pages • Geen uploads naar servers</small>
-    </footer>
-
-    <!-- OpenCV.js for raster→vector processing -->
-    <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
     <script>
-      // Resolve when OpenCV is ready
-      window.cvReady = new Promise((resolve) => {
-        if (window.cv && cv.Mat) { resolve(cv); return; }
-        const start = Date.now();
-        const t = setInterval(() => {
-          if (window.cv && cv.Mat) { clearInterval(t); resolve(cv); }
-          if (Date.now() - start > 15000) { clearInterval(t); console.warn('OpenCV.js load timeout'); resolve(null); }
-        }, 50);
-      });
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let processedImage = null;
+
+        document.getElementById('fileInput').addEventListener('change', handleFile);
+        document.getElementById('cameraInput').addEventListener('change', handleFile);
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            showStatus('Afbeelding laden...', 'info');
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    processImage(img);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function processImage(img) {
+            // Resize voor performance op mobiel
+            const maxSize = 800;
+            let w = img.width;
+            let h = img.height;
+            
+            if (w > h && w > maxSize) {
+                h = (h * maxSize) / w;
+                w = maxSize;
+            } else if (h > maxSize) {
+                w = (w * maxSize) / h;
+                h = maxSize;
+            }
+            
+            canvas.width = w;
+            canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+            
+            // Edge detection
+            const imageData = ctx.getImageData(0, 0, w, h);
+            const edges = detectEdges(imageData);
+            ctx.putImageData(edges, 0, 0);
+            
+            processedImage = edges;
+            
+            document.getElementById('preview').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'flex';
+            showStatus('Lijnen gedetecteerd! Klik op "Download STL" om het 3D model te maken.', 'success');
+        }
+
+        function detectEdges(imageData) {
+            const data = imageData.data;
+            const w = imageData.width;
+            const h = imageData.height;
+            const output = ctx.createImageData(w, h);
+            
+            // Converteer naar grijswaarden en detecteer randen
+            for (let y = 1; y < h - 1; y++) {
+                for (let x = 1; x < w - 1; x++) {
+                    const idx = (y * w + x) * 4;
+                    
+                    // Grijswaarde
+                    const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+                    
+                    // Simpele edge detection (Sobel-achtig)
+                    const idx_l = (y * w + (x - 1)) * 4;
+                    const idx_r = (y * w + (x + 1)) * 4;
+                    const idx_u = ((y - 1) * w + x) * 4;
+                    const idx_d = ((y + 1) * w + x) * 4;
+                    
+                    const gray_l = (data[idx_l] + data[idx_l + 1] + data[idx_l + 2]) / 3;
+                    const gray_r = (data[idx_r] + data[idx_r + 1] + data[idx_r + 2]) / 3;
+                    const gray_u = (data[idx_u] + data[idx_u + 1] + data[idx_u + 2]) / 3;
+                    const gray_d = (data[idx_d] + data[idx_d + 1] + data[idx_d + 2]) / 3;
+                    
+                    const gx = Math.abs(gray_r - gray_l);
+                    const gy = Math.abs(gray_d - gray_u);
+                    const edge = Math.sqrt(gx * gx + gy * gy);
+                    
+                    const val = edge > 50 ? 0 : 255;
+                    
+                    output.data[idx] = val;
+                    output.data[idx + 1] = val;
+                    output.data[idx + 2] = val;
+                    output.data[idx + 3] = 255;
+                }
+            }
+            
+            return output;
+        }
+
+        function generateSTL() {
+            if (!processedImage) return;
+            
+            showStatus('3D model genereren...', 'info');
+            document.getElementById('generateBtn').disabled = true;
+            
+            // Extract contour points
+            const points = extractContour(processedImage);
+            
+            if (points.length < 3) {
+                showStatus('Geen geldige contour gevonden. Probeer een duidelijkere lijntekening.', 'error');
+                document.getElementById('generateBtn').disabled = false;
+                return;
+            }
+            
+            // Generate STL
+            const stl = createCookieCutterSTL(points);
+            downloadSTL(stl, 'koekjesvorm.stl');
+            
+            showStatus('STL bestand gedownload! Je kunt het nu 3D printen. 🎉', 'success');
+            document.getElementById('generateBtn').disabled = false;
+        }
+
+        function extractContour(imageData) {
+            const data = imageData.data;
+            const w = imageData.width;
+            const h = imageData.height;
+            const points = [];
+            
+            // Find edge pixels en sample punten
+            const step = 3; // Sample elke N pixels voor performance
+            
+            for (let y = 0; y < h; y += step) {
+                for (let x = 0; x < w; x += step) {
+                    const idx = (y * w + x) * 4;
+                    if (data[idx] < 128) { // Zwarte pixel = rand
+                        // Normaliseer en centreer
+                        const px = ((x / w) - 0.5) * 100; // mm
+                        const py = ((y / h) - 0.5) * 100; // mm
+                        points.push({x: px, y: py});
+                    }
+                }
+            }
+            
+            // Sorteer punten in een volgorde (simpele benadering)
+            if (points.length > 0) {
+                const sorted = [points[0]];
+                const remaining = points.slice(1);
+                
+                while (remaining.length > 0 && sorted.length < 500) {
+                    const last = sorted[sorted.length - 1];
+                    let nearest = 0;
+                    let minDist = Infinity;
+                    
+                    for (let i = 0; i < remaining.length; i++) {
+                        const dx = remaining[i].x - last.x;
+                        const dy = remaining[i].y - last.y;
+                        const dist = dx * dx + dy * dy;
+                        if (dist < minDist) {
+                            minDist = dist;
+                            nearest = i;
+                        }
+                    }
+                    
+                    sorted.push(remaining[nearest]);
+                    remaining.splice(nearest, 1);
+                }
+                
+                return sorted;
+            }
+            
+            return points;
+        }
+
+        function createCookieCutterSTL(points) {
+            const triangles = [];
+            const baseHeight = 0;
+            const wallHeight = 10; // 10mm (1cm)
+            const rimHeight = 12; // 10mm + 2mm
+            const wallThickness = 0.75; // 1.5mm / 2 (inner en outer wall)
+            const rimThickness = 1.5; // 3mm / 2
+            
+            // Maak muren en rand
+            for (let i = 0; i < points.length; i++) {
+                const p1 = points[i];
+                const p2 = points[(i + 1) % points.length];
+                
+                // Bereken normaal voor dikte
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const nx = -dy / len;
+                const ny = dx / len;
+                
+                // Inner wall punten
+                const p1i = {x: p1.x + nx * wallThickness, y: p1.y + ny * wallThickness};
+                const p2i = {x: p2.x + nx * wallThickness, y: p2.y + ny * wallThickness};
+                
+                // Outer wall punten
+                const p1o = {x: p1.x - nx * wallThickness, y: p1.y - ny * wallThickness};
+                const p2o = {x: p2.x - nx * wallThickness, y: p2.y - ny * wallThickness};
+                
+                // Rim outer punten
+                const p1r = {x: p1.x - nx * rimThickness, y: p1.y - ny * rimThickness};
+                const p2r = {x: p2.x - nx * rimThickness, y: p2.y - ny * rimThickness};
+                
+                // Outer wall (base to wall height)
+                addQuad(triangles,
+                    [p1o.x, p1o.y, baseHeight],
+                    [p2o.x, p2o.y, baseHeight],
+                    [p2o.x, p2o.y, wallHeight],
+                    [p1o.x, p1o.y, wallHeight]
+                );
+                
+                // Inner wall
+                addQuad(triangles,
+                    [p1i.x, p1i.y, wallHeight],
+                    [p2i.x, p2i.y, wallHeight],
+                    [p2i.x, p2i.y, baseHeight],
+                    [p1i.x, p1i.y, baseHeight]
+                );
+                
+                // Top surface (tussen inner en outer)
+                addQuad(triangles,
+                    [p1i.x, p1i.y, wallHeight],
+                    [p1o.x, p1o.y, wallHeight],
+                    [p2o.x, p2o.y, wallHeight],
+                    [p2i.x, p2i.y, wallHeight]
+                );
+                
+                // Rim outer wall (wall height to rim height)
+                addQuad(triangles,
+                    [p1o.x, p1o.y, wallHeight],
+                    [p2o.x, p2o.y, wallHeight],
+                    [p2r.x, p2r.y, rimHeight],
+                    [p1r.x, p1r.y, rimHeight]
+                );
+                
+                // Rim top surface
+                addQuad(triangles,
+                    [p1o.x, p1o.y, wallHeight],
+                    [p1r.x, p1r.y, rimHeight],
+                    [p2r.x, p2r.y, rimHeight],
+                    [p2o.x, p2o.y, wallHeight]
+                );
+                
+                // Bottom surface
+                addQuad(triangles,
+                    [p1o.x, p1o.y, baseHeight],
+                    [p1i.x, p1i.y, baseHeight],
+                    [p2i.x, p2i.y, baseHeight],
+                    [p2o.x, p2o.y, baseHeight]
+                );
+            }
+            
+            return trianglesToSTL(triangles);
+        }
+
+        function addQuad(triangles, p1, p2, p3, p4) {
+            // Triangle 1
+            triangles.push([p1, p2, p3]);
+            // Triangle 2
+            triangles.push([p1, p3, p4]);
+        }
+
+        function trianglesToSTL(triangles) {
+            let stl = 'solid cookie_cutter\n';
+            
+            for (const tri of triangles) {
+                const normal = calculateNormal(tri[0], tri[1], tri[2]);
+                stl += `  facet normal ${normal[0].toFixed(6)} ${normal[1].toFixed(6)} ${normal[2].toFixed(6)}\n`;
+                stl += '    outer loop\n';
+                for (const vertex of tri) {
+                    stl += `      vertex ${vertex[0].toFixed(6)} ${vertex[1].toFixed(6)} ${vertex[2].toFixed(6)}\n`;
+                }
+                stl += '    endloop\n';
+                stl += '  endfacet\n';
+            }
+            
+            stl += 'endsolid cookie_cutter\n';
+            return stl;
+        }
+
+        function calculateNormal(p1, p2, p3) {
+            const v1 = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+            const v2 = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+            
+            const nx = v1[1] * v2[2] - v1[2] * v2[1];
+            const ny = v1[2] * v2[0] - v1[0] * v2[2];
+            const nz = v1[0] * v2[1] - v1[1] * v2[0];
+            
+            const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+            
+            return [nx / len, ny / len, nz / len];
+        }
+
+        function downloadSTL(stl, filename) {
+            const blob = new Blob([stl], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function resetApp() {
+            document.getElementById('preview').style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'none';
+            document.getElementById('status').className = 'status';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('cameraInput').value = '';
+            processedImage = null;
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
     </script>
-
-    <!-- Hidden canvas for image preprocessing -->
-    <canvas id="cvCanvas" width="0" height="0" style="display:none"></canvas>
-
-    <!-- Three.js + STL Exporter (ES modules via CDN) -->
-    <script type="module">
-      import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-      import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-      import { STLExporter } from 'https://unpkg.com/three@0.160.0/examples/jsm/exporters/STLExporter.js';
-      import * as BufferGeometryUtils from 'https://unpkg.com/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
-
-      // === UI refs ===
-      const fileInput = document.getElementById('file');
-      const btnProcess = document.getElementById('btnProcess');
-      const btnDownload = document.getElementById('btnDownload');
-      const statusEl = document.getElementById('status');
-      const debugEl = document.getElementById('debug');
-      const errorsEl = document.getElementById('errors');
-      const viewerEl = document.getElementById('viewer');
-
-      // === Three.js scene ===
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0b1220);
-      const camera = new THREE.PerspectiveCamera(50, viewerEl.clientWidth / viewerEl.clientHeight, 0.1, 1000);
-      camera.position.set(40, 35, 40);
-
-      const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false });
-      renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-      renderer.setSize(viewerEl.clientWidth, viewerEl.clientHeight);
-      viewerEl.appendChild(renderer.domElement);
-
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-
-      // Lights
-      const hemi = new THREE.HemisphereLight(0xffffff, 0x202020, 1.0);
-      scene.add(hemi);
-      const dir = new THREE.DirectionalLight(0xffffff, 0.75);
-      dir.position.set(1, 2, 1);
-      scene.add(dir);
-
-      // Ground grid
-      const grid = new THREE.GridHelper(200, 20, 0x334155, 0x1f2937);
-      scene.add(grid);
-
-      // Placeholder group for the generated cookie mesh
-      const cookieGroup = new THREE.Group();
-      scene.add(cookieGroup);
-
-      // Resize handling
-      const onResize = () => {
-        const { clientWidth, clientHeight } = viewerEl;
-        camera.aspect = clientWidth / clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(clientWidth, clientHeight);
-      };
-      window.addEventListener('resize', onResize);
-
-      // Animate
-      const tick = () => { controls.update(); renderer.render(scene, camera); requestAnimationFrame(tick); };
-      tick();
-
-      // === App state ===
-      let lastGeometry = null; // to export as STL
-
-      // === Helpers ===
-      const log = (msg) => { debugEl.textContent += `
-${new Date().toLocaleTimeString()} — ${msg}`; debugEl.scrollTop = debugEl.scrollHeight; };
-      const setStatus = (msg, tone = 'muted') => { statusEl.className = tone === 'error' ? 'danger' : tone === 'ok' ? 'success' : 'muted'; statusEl.textContent = msg; };
-      const setError = (msg) => { errorsEl.textContent = msg || ''; };
-
-      // Global error handlers → toon in debug & errors
-      window.addEventListener('error', (e) => {
-        setError('Onverwachte fout: ' + (e && e.message ? e.message : 'unknown'));
-        log((e && e.error && e.error.stack) ? e.error.stack : 'No stack');
-      });
-      window.addEventListener('unhandledrejection', (e) => {
-        setError('Unhandled promise rejection: ' + (e && e.reason && e.reason.message ? e.reason.message : 'unknown'));
-        log((e && e.reason && e.reason.stack) ? e.reason.stack : 'No stack');
-      });
-
-      // Load image compatibly across browsers (fallback for iOS Safari where createImageBitmap may be missing)
-      async function loadImageFromFile(file){
-        if ('createImageBitmap' in window) {
-          const blob = new Blob([await file.arrayBuffer()]);
-          return await createImageBitmap(blob);
-        }
-        return await new Promise((resolve, reject)=>{
-          const img = new Image();
-          img.onload = ()=> resolve(img);
-          img.onerror = (e)=> reject(new Error('Afbeelding laden mislukt'));
-          img.src = URL.createObjectURL(file);
-        });
-      }
-
-      // === Pipeline stubs ===
-      // 1) Raster -> vector: detecteer een enkele gesloten contour uit de foto
-      async function rasterToSingleClosedPath(imageSource) {
-        log('Start: raster → vector (OpenCV)');
-        const cvlib = await window.cvReady;
-        if (!cvlib) { throw new Error('OpenCV.js kon niet worden geladen.'); }
-
-        // 1) Draw imageBitmap to an offscreen canvas (downscale for performance)
-        const cvs = document.getElementById('cvCanvas');
-        const maxDim = 800; // px (lager = sneller op mobiel)
-        const scale = Math.min(1, maxDim / Math.max(imageSource.width, imageSource.height));
-        cvs.width = Math.max(8, Math.round(imageSource.width * scale));
-        cvs.height = Math.max(8, Math.round(imageSource.height * scale));
-        const ctx = cvs.getContext('2d');
-        ctx.clearRect(0, 0, cvs.width, cvs.height);
-        ctx.drawImage(imageSource, 0, 0, cvs.width, cvs.height);
-
-        // 2) OpenCV pipeline: gray → blur → Otsu threshold → morphology → contours
-        const src = cv.imread(cvs);
-        const gray = new cv.Mat();
-        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
-        const blur = new cv.Mat();
-        const ksize = new cv.Size(5, 5);
-        cv.GaussianBlur(gray, blur, ksize, 0, 0, cv.BORDER_DEFAULT);
-        const thresh = new cv.Mat();
-        cv.threshold(blur, thresh, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
-        // Close small gaps in the line
-        const kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
-        const morph = new cv.Mat();
-        cv.morphologyEx(thresh, morph, cv.MORPH_CLOSE, kernel);
-
-        // 3) Find contours
-        const contours = new cv.MatVector();
-        const hierarchy = new cv.Mat();
-        cv.findContours(morph, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE);
-        log(`Contours gevonden: ${contours.size()}`);
-        if (contours.size() === 0) {
-          // Cleanup
-          src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete();
-          return [];
-        }
-
-        // 4) Choose the largest external contour as the cookie outline
-        let bestIdx = -1, bestArea = 0, bestPerim = 0;
-        for (let i = 0; i < contours.size(); i++) {
-          const c = contours.get(i);
-          const area = Math.abs(cv.contourArea(c, false));
-          const per = cv.arcLength(c, true);
-          if (area > bestArea && per > 50) { bestArea = area; bestPerim = per; bestIdx = i; }
-        }
-        if (bestIdx < 0) {
-          src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete();
-          return [];
-        }
-
-        const contour = contours.get(bestIdx);
-
-        // 5) Simplify the contour (Douglas-Peucker) but keep enough detail for smoothness
-        const epsilon = 0.003 * bestPerim; // 0.3% of perimeter
-        const approx = new cv.Mat();
-        cv.approxPolyDP(contour, approx, epsilon, true);
-
-        // Guard: at least a triangle
-        if (approx.rows < 3) {
-          src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete(); approx.delete();
-          return [];
-        }
-
-        // Convert to JS points array (pixels) via data32S (x,y interleaved)
-        const ptsPx = [];
-        const data = approx.data32S; // Int32Array length = rows*2
-        for (let i = 0; i < data.length; i += 2) {
-          ptsPx.push({ x: data[i], y: data[i + 1] });
-        }
-
-        // 6) Resample to evenly spaced N points along the closed curve for stable TubeGeometry
-        const N = Math.max(128, Math.min(512, ptsPx.length * 4));
-        // Build cumulative lengths
-        const segs = [];
-        let total = 0;
-        for (let i = 0; i < ptsPx.length; i++) {
-          const a = ptsPx[i];
-          const b = ptsPx[(i + 1) % ptsPx.length];
-          const d = Math.hypot(b.x - a.x, b.y - a.y);
-          segs.push(d);
-          total += d;
-        }
-        const out = [];
-        for (let k = 0; k < N; k++) {
-          const t = (k / N) * total;
-          let acc = 0, idx = 0;
-          while (idx < segs.length && acc + segs[idx] < t) { acc += segs[idx]; idx++; }
-          const a = ptsPx[idx % ptsPx.length];
-          const b = ptsPx[(idx + 1) % ptsPx.length];
-          const local = (t - acc) / (segs[idx] || 1);
-          out.push({ x: a.x + (b.x - a.x) * local, y: a.y + (b.y - a.y) * local });
-        }
-
-        // 7) Normalize & scale to mm (fit longest side to ~70 mm)
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        out.forEach(p => { if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; });
-        const w = maxX - minX, h = maxY - minY;
-        const targetMaxMM = 70; // default cookie size ≈ 7 cm max dimension
-        const s = (w > h ? targetMaxMM / w : targetMaxMM / h);
-        const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-        const points = out.map(p => ({ x: (p.x - cx) * s, y: (cy - p.y) * s })); // y flip to make +y up in view
-
-        // Cleanup
-        src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete(); approx.delete();
-
-        log(`Contour geselecteerd (oppervlakte px²: ${bestArea.toFixed(0)}, punten: ${points.length}). Schaal → max ${targetMaxMM} mm.`);
-        return points;
-      }
-
-      // 2) Validatie: enkele lijn + gesloten vorm: enkele lijn + gesloten vorm
-      function validatePathClosedSingle(points) {
-        log('Valideren van pad');
-        if (!points || points.length < 3) return { ok: false, reason: 'Onvoldoende punten gedetecteerd' };
-        // Eenvoudige closure check: eerste & laatste binnen drempel
-        const first = points[0], last = points[points.length - 1];
-        const dx = first.x - last.x, dy = first.y - last.y;
-        const closed = Math.hypot(dx, dy) < 1e-1;
-        if (!closed) return { ok: false, reason: 'Contour is niet gesloten' };
-        return { ok: true };
-      }
-
-      // 3) 3D genereren: extrusie + bovenop verdikking (bead)
-      function generate3DFromPath(points, opts = { lineWidthMM: 1.5, baseHeightMM: 10, beadWidthMM: 3, beadHeightMM: 2 }) {
-        log('Genereer 3D-mesh');
-        const { lineWidthMM, baseHeightMM, beadWidthMM, beadHeightMM } = opts;
-
-        // Maak een shape van de polyline met buffer (stroke → filled shape)
-        // Simpel: maak een buis (TubeGeometry) rond het pad en merge segmenten (benadering van koekrand)
-        const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, 0, p.y)), true, 'catmullrom', 0.1);
-        const tubularSegments = Math.max(64, points.length);
-        const radius = lineWidthMM / 2;
-        const base = new THREE.TubeGeometry(curve, tubularSegments, radius, 16, true);
-
-        // Maak een mesh en extrudeer in Z (hoogte): we gebruiken scale/clone per laag (benadering)
-        base.translate(0, 0, 0);
-        // Maak een basis-mesh en extrudeer via instancing (truc: schaalverandering in y)
-        // Simpler: we gebruiken base als grondvlak en extruderen door te kopiëren in Y.
-        const baseMesh = new THREE.Mesh(base);
-        baseMesh.geometry.rotateX(Math.PI / 2);
-        baseMesh.geometry.translate(0, baseHeightMM/2, 0);
-        const baseGeom = baseMesh.geometry.clone();
-
-        // Bead (bovenop verdikking)
-        const bead = new THREE.TubeGeometry(curve, tubularSegments, beadWidthMM / 2, 12, true);
-        const beadMesh = new THREE.Mesh(bead);
-        beadMesh.geometry.rotateX(Math.PI / 2);
-        beadMesh.geometry.translate(0, baseHeightMM + beadHeightMM/2, 0);
-        const beadGeom = beadMesh.geometry.clone();
-
-        // Materialen
-        const mat = new THREE.MeshStandardMaterial({ metalness: 0.1, roughness: 0.6 });
-
-        // Groep bouwen
-        cookieGroup.clear();
-        const baseMeshOut = new THREE.Mesh(baseGeom, mat);
-        const beadMeshOut = new THREE.Mesh(beadGeom, mat);
-        cookieGroup.add(baseMeshOut);
-        cookieGroup.add(beadMeshOut);
-
-        // Bewaar laatste geometrie als samengevoegd voor STL-export
-        const merged = BufferGeometryUtils.mergeGeometries
-          ? THREE.BufferGeometryUtils.mergeGeometries([baseGeom, beadGeom])
-          : baseGeom; // fallback
-        lastGeometry = merged;
-
-        // Framen
-        const bb = new THREE.Box3().setFromObject(cookieGroup);
-        const size = bb.getSize(new THREE.Vector3());
-        const center = bb.getCenter(new THREE.Vector3());
-        controls.target.copy(center);
-        camera.position.set(center.x + size.length() * 0.8, center.y + size.length() * 0.6, center.z + size.length() * 0.8);
-        controls.update();
-      }
-
-      // 4) STL export
-      function downloadSTL(filename = 'cookie.stl') {
-        if (!lastGeometry) { setError('Geen model om te exporteren.'); return; }
-        const exporter = new STLExporter();
-        const mesh = new THREE.Mesh(lastGeometry, new THREE.MeshNormalMaterial());
-        const data = exporter.parse(mesh, { binary: true });
-        const blob = new Blob([data], { type: 'application/octet-stream' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = filename; a.click();
-        URL.revokeObjectURL(url);
-      }
-
-      // Bestandsinvoer
-      fileInput.addEventListener('change', async () => {
-        setError('');
-        lastGeometry = null;
-        if (!fileInput.files?.length) { setStatus('Nog geen bestand gekozen.'); btnProcess.disabled = true; return; }
-        const file = fileInput.files[0];
-        setStatus(`Bestand: ${file.name}`);
-        btnProcess.disabled = false;
-        log(`Bestand ontvangen (${Math.round(file.size/1024)} kB)`);
-      });
-
-      // Verwerkingstrigger
-      btnProcess.addEventListener('click', async () => {
-        try {
-          setError('');
-          btnProcess.disabled = true;
-          btnDownload.disabled = true;
-          setStatus('Bezig met verwerken…');
-          log('Lees afbeelding in…');
-
-          const file = fileInput.files?.[0];
-          if (!file) { setError('Geen bestand geselecteerd.'); setStatus('Geen bestand.', 'error'); return; }
-
-          const img = await loadImageFromFile(file);
-
-          const points = await rasterToSingleClosedPath(img);
-          const val = validatePathClosedSingle(points);
-          if (!val.ok) { setError(val.reason); setStatus('Validatie mislukt', 'error'); btnProcess.disabled = false; return; }
-
-          generate3DFromPath(points);
-          btnDownload.disabled = false;
-          setStatus('Model gereed ✅', 'ok');
-          log('Klaar. STL kan worden gedownload.');
-        } catch (e) {
-          console.error(e);
-          setError('Fout tijdens verwerking: ' + (e && e.message ? e.message : 'onbekend'));
-          setStatus('Fout tijdens verwerking', 'error');
-          btnProcess.disabled = false;
-        }
-      });
-
-      // Download
-      btnDownload.addEventListener('click', () => downloadSTL());
-
-      // Info in debug bij start
-      log('App gestart. Kies een foto van een lijnentekening.');
-      log('NB: De huidige versie gebruikt een placeholder-cirkel tot de vectorisatie is geïmplementeerd.');
-    </script>
-    <!-- BufferGeometryUtils polyfill loader -->
-    </body>
+</body>
 </html>
