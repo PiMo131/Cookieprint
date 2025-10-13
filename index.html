@@ -1,3 +1,4 @@
+
 <!DOCTYPE html><html lang="nl">
   <head>
     <meta charset="utf-8" />
@@ -110,8 +111,8 @@
   const camera = new THREE.PerspectiveCamera(50, viewerEl.clientWidth / viewerEl.clientHeight, 0.1, 1000);
   camera.position.set(40, 35, 40);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(devicePixelRatio);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.setSize(viewerEl.clientWidth, viewerEl.clientHeight);
   viewerEl.appendChild(renderer.domElement);
 
@@ -150,26 +151,40 @@
   let lastGeometry = null; // to export as STL
 
   // === Helpers ===
-  const log = (msg) => { debugEl.textContent += `\n${new Date().toLocaleTimeString()} — ${msg}`; debugEl.scrollTop = debugEl.scrollHeight; };
-  const setStatus = (msg, tone = 'muted') => { statusEl.className = tone === 'error' ? 'danger' : tone === 'ok' ? 'success' : 'muted'; statusEl.textContent = msg; };
-  const setError = (msg) => { errorsEl.textContent = msg || ''; };
+  const log = (msg) => { debugEl.textContent += `
+
+${new Date().toLocaleTimeString()} — ${msg}`; debugEl.scrollTop = debugEl.scrollHeight; }; const setStatus = (msg, tone = 'muted') => { statusEl.className = tone === 'error' ? 'danger' : tone === 'ok' ? 'success' : 'muted'; statusEl.textContent = msg; }; const setError = (msg) => { errorsEl.textContent = msg || ''; };
+
+// Load image compatibly across browsers (fallback for iOS Safari where createImageBitmap may be missing)
+  async function loadImageFromFile(file){
+    if ('createImageBitmap' in window) {
+      const blob = new Blob([await file.arrayBuffer()]);
+      return await createImageBitmap(blob);
+    }
+    return await new Promise((resolve, reject)=>{
+      const img = new Image();
+      img.onload = ()=> resolve(img);
+      img.onerror = (e)=> reject(new Error('Afbeelding laden mislukt'));
+      img.src = URL.createObjectURL(file);
+    });
+  }
 
   // === Pipeline stubs ===
   // 1) Raster -> vector: detecteer een enkele gesloten contour uit de foto
-  async function rasterToSingleClosedPath(imageBitmap) {
+  async function rasterToSingleClosedPath(imageSource) {
     log('Start: raster → vector (OpenCV)');
     const cvlib = await window.cvReady;
     if (!cvlib) { throw new Error('OpenCV.js kon niet worden geladen.'); }
 
     // 1) Draw imageBitmap to an offscreen canvas (downscale for performance)
     const cvs = document.getElementById('cvCanvas');
-    const maxDim = 1024; // px
-    const scale = Math.min(1, maxDim / Math.max(imageBitmap.width, imageBitmap.height));
-    cvs.width = Math.max(8, Math.round(imageBitmap.width * scale));
-    cvs.height = Math.max(8, Math.round(imageBitmap.height * scale));
+    const maxDim = 800; // px (lager = sneller op mobiel)
+    const scale = Math.min(1, maxDim / Math.max(imageSource.width, imageSource.height));
+    cvs.width = Math.max(8, Math.round(imageSource.width * scale));
+    cvs.height = Math.max(8, Math.round(imageSource.height * scale));
     const ctx = cvs.getContext('2d');
     ctx.clearRect(0, 0, cvs.width, cvs.height);
-    ctx.drawImage(imageBitmap, 0, 0, cvs.width, cvs.height);
+    ctx.drawImage(imageSource, 0, 0, cvs.width, cvs.height);
 
     // 2) OpenCV pipeline: gray → blur → Otsu threshold → morphology → contours
     const src = cv.imread(cvs);
@@ -363,7 +378,7 @@
       const file = fileInput.files?.[0];
       if (!file) { setError('Geen bestand geselecteerd.'); setStatus('Geen bestand.', 'error'); return; }
 
-      const img = await createImageBitmap(await file.arrayBuffer().then(b => new Blob([b])));
+      const img = await loadImageFromFile(file);
 
       const points = await rasterToSingleClosedPath(img);
       const val = validatePathClosedSingle(points);
@@ -375,7 +390,7 @@
       log('Klaar. STL kan worden gedownload.');
     } catch (e) {
       console.error(e);
-      setError('Er is iets misgegaan tijdens de verwerking.');
+      setError('Fout tijdens verwerking: ' + (e && e.message ? e.message : 'onbekend'));
       setStatus('Fout tijdens verwerking', 'error');
       btnProcess.disabled = false;
     }
