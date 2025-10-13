@@ -1,5 +1,5 @@
-
-<!DOCTYPE html><html lang="nl">
+<!DOCTYPE html>
+<html lang="nl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,376 +39,390 @@
         <div class="row">
           <label for="file">Upload foto (lijnentekening) <span class="muted">– zwart/blauw op wit, gesloten contour</span></label>
           <input id="file" type="file" accept="image/*" capture="environment" />
-        </div><div class="row inline">
-      <button id="btnProcess" disabled>📷 Converteer naar 3D</button>
-      <button id="btnDownload" disabled>⬇️ Download STL</button>
-    </div>
+        </div>
 
-    <div class="stack">
-      <div id="status" class="muted">Nog geen bestand gekozen.</div>
-      <div>
-        <span class="chip">Lijndikte: 1.5 mm</span>
-        <span class="chip">Basishoogte: 10 mm</span>
-        <span class="chip">Toeslag: 3 mm × 2 mm</span>
-      </div>
-    </div>
-  </section>
+        <div class="row inline">
+          <button id="btnProcess" disabled>📷 Converteer naar 3D</button>
+          <button id="btnDownload" disabled>⬇️ Download STL</button>
+        </div>
 
-  <!-- 3D viewer -->
-  <section class="card" aria-label="3D viewer">
-    <div id="viewer" class="viewer"></div>
-  </section>
+        <div class="stack">
+          <div id="status" class="muted">Nog geen bestand gekozen.</div>
+          <div>
+            <span class="chip">Lijndikte: 1.5 mm</span>
+            <span class="chip">Basishoogte: 10 mm</span>
+            <span class="chip">Toeslag: 3 mm × 2 mm</span>
+          </div>
+        </div>
+      </section>
 
-  <!-- Debug & validatie -->
-  <section class="card" aria-label="Debug en validatie">
-    <div class="stack">
-      <strong>Debug & validatie</strong>
-      <div id="debug" class="debug" role="status" aria-live="polite">Wacht op invoer…</div>
-      <div id="errors" class="danger"></div>
-    </div>
-  </section>
-</main>
+      <!-- 3D viewer -->
+      <section class="card" aria-label="3D viewer">
+        <div id="viewer" class="viewer"></div>
+      </section>
 
-<footer>
-  <small>Werkt offline op GitHub Pages • Geen uploads naar servers</small>
-</footer>
+      <!-- Debug & validatie -->
+      <section class="card" aria-label="Debug en validatie">
+        <div class="stack">
+          <strong>Debug & validatie</strong>
+          <div id="debug" class="debug" role="status" aria-live="polite">Wacht op invoer…</div>
+          <div id="errors" class="danger"></div>
+        </div>
+      </section>
+    </main>
 
-<!-- OpenCV.js for raster→vector processing -->
-<script src="https://docs.opencv.org/4.x/opencv.js" async></script>
-<script>
-  // Resolve when OpenCV is ready
-  window.cvReady = new Promise((resolve) => {
-    if (window.cv && cv.Mat) { resolve(cv); return; }
-    const start = Date.now();
-    const t = setInterval(() => {
-      if (window.cv && cv.Mat) { clearInterval(t); resolve(cv); }
-      if (Date.now() - start > 15000) { clearInterval(t); console.warn('OpenCV.js load timeout'); resolve(null); }
-    }, 50);
-  });
-</script>
+    <footer>
+      <small>Werkt offline op GitHub Pages • Geen uploads naar servers</small>
+    </footer>
 
-<!-- Hidden canvas for image preprocessing -->
-<canvas id="cvCanvas" width="0" height="0" style="display:none"></canvas>
+    <!-- OpenCV.js for raster→vector processing -->
+    <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
+    <script>
+      // Resolve when OpenCV is ready
+      window.cvReady = new Promise((resolve) => {
+        if (window.cv && cv.Mat) { resolve(cv); return; }
+        const start = Date.now();
+        const t = setInterval(() => {
+          if (window.cv && cv.Mat) { clearInterval(t); resolve(cv); }
+          if (Date.now() - start > 15000) { clearInterval(t); console.warn('OpenCV.js load timeout'); resolve(null); }
+        }, 50);
+      });
+    </script>
 
-<!-- Three.js + STL Exporter (ES modules via CDN) -->
-<script type="module">
-  import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-  import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-  import { STLExporter } from 'https://unpkg.com/three@0.160.0/examples/jsm/exporters/STLExporter.js';
+    <!-- Hidden canvas for image preprocessing -->
+    <canvas id="cvCanvas" width="0" height="0" style="display:none"></canvas>
 
-  // === UI refs ===
-  const fileInput = document.getElementById('file');
-  const btnProcess = document.getElementById('btnProcess');
-  const btnDownload = document.getElementById('btnDownload');
-  const statusEl = document.getElementById('status');
-  const debugEl = document.getElementById('debug');
-  const errorsEl = document.getElementById('errors');
-  const viewerEl = document.getElementById('viewer');
+    <!-- Three.js + STL Exporter (ES modules via CDN) -->
+    <script type="module">
+      import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+      import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+      import { STLExporter } from 'https://unpkg.com/three@0.160.0/examples/jsm/exporters/STLExporter.js';
+      import * as BufferGeometryUtils from 'https://unpkg.com/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
 
-  // === Three.js scene ===
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0b1220);
-  const camera = new THREE.PerspectiveCamera(50, viewerEl.clientWidth / viewerEl.clientHeight, 0.1, 1000);
-  camera.position.set(40, 35, 40);
+      // === UI refs ===
+      const fileInput = document.getElementById('file');
+      const btnProcess = document.getElementById('btnProcess');
+      const btnDownload = document.getElementById('btnDownload');
+      const statusEl = document.getElementById('status');
+      const debugEl = document.getElementById('debug');
+      const errorsEl = document.getElementById('errors');
+      const viewerEl = document.getElementById('viewer');
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false });
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-  renderer.setSize(viewerEl.clientWidth, viewerEl.clientHeight);
-  viewerEl.appendChild(renderer.domElement);
+      // === Three.js scene ===
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0b1220);
+      const camera = new THREE.PerspectiveCamera(50, viewerEl.clientWidth / viewerEl.clientHeight, 0.1, 1000);
+      camera.position.set(40, 35, 40);
 
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+      const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: false });
+      renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+      renderer.setSize(viewerEl.clientWidth, viewerEl.clientHeight);
+      viewerEl.appendChild(renderer.domElement);
 
-  // Lights
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x202020, 1.0);
-  scene.add(hemi);
-  const dir = new THREE.DirectionalLight(0xffffff, 0.75);
-  dir.position.set(1, 2, 1);
-  scene.add(dir);
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
 
-  // Ground grid
-  const grid = new THREE.GridHelper(200, 20, 0x334155, 0x1f2937);
-  scene.add(grid);
+      // Lights
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x202020, 1.0);
+      scene.add(hemi);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.75);
+      dir.position.set(1, 2, 1);
+      scene.add(dir);
 
-  // Placeholder group for the generated cookie mesh
-  const cookieGroup = new THREE.Group();
-  scene.add(cookieGroup);
+      // Ground grid
+      const grid = new THREE.GridHelper(200, 20, 0x334155, 0x1f2937);
+      scene.add(grid);
 
-  // Resize handling
-  const onResize = () => {
-    const { clientWidth, clientHeight } = viewerEl;
-    camera.aspect = clientWidth / clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(clientWidth, clientHeight);
-  };
-  window.addEventListener('resize', onResize);
+      // Placeholder group for the generated cookie mesh
+      const cookieGroup = new THREE.Group();
+      scene.add(cookieGroup);
 
-  // Animate
-  const tick = () => { controls.update(); renderer.render(scene, camera); requestAnimationFrame(tick); };
-  tick();
+      // Resize handling
+      const onResize = () => {
+        const { clientWidth, clientHeight } = viewerEl;
+        camera.aspect = clientWidth / clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(clientWidth, clientHeight);
+      };
+      window.addEventListener('resize', onResize);
 
-  // === App state ===
-  let lastGeometry = null; // to export as STL
+      // Animate
+      const tick = () => { controls.update(); renderer.render(scene, camera); requestAnimationFrame(tick); };
+      tick();
 
-  // === Helpers ===
-  const log = (msg) => { debugEl.textContent += `
+      // === App state ===
+      let lastGeometry = null; // to export as STL
 
-${new Date().toLocaleTimeString()} — ${msg}`; debugEl.scrollTop = debugEl.scrollHeight; }; const setStatus = (msg, tone = 'muted') => { statusEl.className = tone === 'error' ? 'danger' : tone === 'ok' ? 'success' : 'muted'; statusEl.textContent = msg; }; const setError = (msg) => { errorsEl.textContent = msg || ''; };
+      // === Helpers ===
+      const log = (msg) => { debugEl.textContent += `
+${new Date().toLocaleTimeString()} — ${msg}`; debugEl.scrollTop = debugEl.scrollHeight; };
+      const setStatus = (msg, tone = 'muted') => { statusEl.className = tone === 'error' ? 'danger' : tone === 'ok' ? 'success' : 'muted'; statusEl.textContent = msg; };
+      const setError = (msg) => { errorsEl.textContent = msg || ''; };
 
-// Load image compatibly across browsers (fallback for iOS Safari where createImageBitmap may be missing)
-  async function loadImageFromFile(file){
-    if ('createImageBitmap' in window) {
-      const blob = new Blob([await file.arrayBuffer()]);
-      return await createImageBitmap(blob);
-    }
-    return await new Promise((resolve, reject)=>{
-      const img = new Image();
-      img.onload = ()=> resolve(img);
-      img.onerror = (e)=> reject(new Error('Afbeelding laden mislukt'));
-      img.src = URL.createObjectURL(file);
-    });
-  }
+      // Global error handlers → toon in debug & errors
+      window.addEventListener('error', (e) => {
+        setError('Onverwachte fout: ' + (e && e.message ? e.message : 'unknown'));
+        log((e && e.error && e.error.stack) ? e.error.stack : 'No stack');
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        setError('Unhandled promise rejection: ' + (e && e.reason && e.reason.message ? e.reason.message : 'unknown'));
+        log((e && e.reason && e.reason.stack) ? e.reason.stack : 'No stack');
+      });
 
-  // === Pipeline stubs ===
-  // 1) Raster -> vector: detecteer een enkele gesloten contour uit de foto
-  async function rasterToSingleClosedPath(imageSource) {
-    log('Start: raster → vector (OpenCV)');
-    const cvlib = await window.cvReady;
-    if (!cvlib) { throw new Error('OpenCV.js kon niet worden geladen.'); }
+      // Load image compatibly across browsers (fallback for iOS Safari where createImageBitmap may be missing)
+      async function loadImageFromFile(file){
+        if ('createImageBitmap' in window) {
+          const blob = new Blob([await file.arrayBuffer()]);
+          return await createImageBitmap(blob);
+        }
+        return await new Promise((resolve, reject)=>{
+          const img = new Image();
+          img.onload = ()=> resolve(img);
+          img.onerror = (e)=> reject(new Error('Afbeelding laden mislukt'));
+          img.src = URL.createObjectURL(file);
+        });
+      }
 
-    // 1) Draw imageBitmap to an offscreen canvas (downscale for performance)
-    const cvs = document.getElementById('cvCanvas');
-    const maxDim = 800; // px (lager = sneller op mobiel)
-    const scale = Math.min(1, maxDim / Math.max(imageSource.width, imageSource.height));
-    cvs.width = Math.max(8, Math.round(imageSource.width * scale));
-    cvs.height = Math.max(8, Math.round(imageSource.height * scale));
-    const ctx = cvs.getContext('2d');
-    ctx.clearRect(0, 0, cvs.width, cvs.height);
-    ctx.drawImage(imageSource, 0, 0, cvs.width, cvs.height);
+      // === Pipeline stubs ===
+      // 1) Raster -> vector: detecteer een enkele gesloten contour uit de foto
+      async function rasterToSingleClosedPath(imageSource) {
+        log('Start: raster → vector (OpenCV)');
+        const cvlib = await window.cvReady;
+        if (!cvlib) { throw new Error('OpenCV.js kon niet worden geladen.'); }
 
-    // 2) OpenCV pipeline: gray → blur → Otsu threshold → morphology → contours
-    const src = cv.imread(cvs);
-    const gray = new cv.Mat();
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
-    const blur = new cv.Mat();
-    const ksize = new cv.Size(5, 5);
-    cv.GaussianBlur(gray, blur, ksize, 0, 0, cv.BORDER_DEFAULT);
-    const thresh = new cv.Mat();
-    cv.threshold(blur, thresh, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
-    // Close small gaps in the line
-    const kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
-    const morph = new cv.Mat();
-    cv.morphologyEx(thresh, morph, cv.MORPH_CLOSE, kernel);
+        // 1) Draw imageBitmap to an offscreen canvas (downscale for performance)
+        const cvs = document.getElementById('cvCanvas');
+        const maxDim = 800; // px (lager = sneller op mobiel)
+        const scale = Math.min(1, maxDim / Math.max(imageSource.width, imageSource.height));
+        cvs.width = Math.max(8, Math.round(imageSource.width * scale));
+        cvs.height = Math.max(8, Math.round(imageSource.height * scale));
+        const ctx = cvs.getContext('2d');
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        ctx.drawImage(imageSource, 0, 0, cvs.width, cvs.height);
 
-    // 3) Find contours
-    const contours = new cv.MatVector();
-    const hierarchy = new cv.Mat();
-    cv.findContours(morph, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE);
-    log(`Contours gevonden: ${contours.size()}`);
-    if (contours.size() === 0) {
-      // Cleanup
-      src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete();
-      return [];
-    }
+        // 2) OpenCV pipeline: gray → blur → Otsu threshold → morphology → contours
+        const src = cv.imread(cvs);
+        const gray = new cv.Mat();
+        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+        const blur = new cv.Mat();
+        const ksize = new cv.Size(5, 5);
+        cv.GaussianBlur(gray, blur, ksize, 0, 0, cv.BORDER_DEFAULT);
+        const thresh = new cv.Mat();
+        cv.threshold(blur, thresh, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+        // Close small gaps in the line
+        const kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(3, 3));
+        const morph = new cv.Mat();
+        cv.morphologyEx(thresh, morph, cv.MORPH_CLOSE, kernel);
 
-    // 4) Choose the largest external contour as the cookie outline
-    let bestIdx = -1, bestArea = 0, bestPerim = 0;
-    for (let i = 0; i < contours.size(); i++) {
-      const c = contours.get(i);
-      const area = cv.contourArea(c, true);
-      const per = cv.arcLength(c, true);
-      if (area > bestArea && per > 50) { bestArea = area; bestPerim = per; bestIdx = i; }
-    }
-    if (bestIdx < 0) {
-      src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete();
-      return [];
-    }
+        // 3) Find contours
+        const contours = new cv.MatVector();
+        const hierarchy = new cv.Mat();
+        cv.findContours(morph, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE);
+        log(`Contours gevonden: ${contours.size()}`);
+        if (contours.size() === 0) {
+          // Cleanup
+          src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete();
+          return [];
+        }
 
-    const contour = contours.get(bestIdx);
+        // 4) Choose the largest external contour as the cookie outline
+        let bestIdx = -1, bestArea = 0, bestPerim = 0;
+        for (let i = 0; i < contours.size(); i++) {
+          const c = contours.get(i);
+          const area = Math.abs(cv.contourArea(c, false));
+          const per = cv.arcLength(c, true);
+          if (area > bestArea && per > 50) { bestArea = area; bestPerim = per; bestIdx = i; }
+        }
+        if (bestIdx < 0) {
+          src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete();
+          return [];
+        }
 
-    // 5) Simplify the contour (Douglas-Peucker) but keep enough detail for smoothness
-    const epsilon = 0.003 * bestPerim; // 0.3% of perimeter
-    const approx = new cv.Mat();
-    cv.approxPolyDP(contour, approx, epsilon, true);
+        const contour = contours.get(bestIdx);
 
-    // Convert to JS points array (pixels)
-    const ptsPx = [];
-    for (let i = 0; i < approx.rows; i++) {
-      const p = approx.intPtr(i);
-      ptsPx.push({ x: p[0], y: p[1] });
-    }
+        // 5) Simplify the contour (Douglas-Peucker) but keep enough detail for smoothness
+        const epsilon = 0.003 * bestPerim; // 0.3% of perimeter
+        const approx = new cv.Mat();
+        cv.approxPolyDP(contour, approx, epsilon, true);
 
-    // 6) Resample to evenly spaced N points along the closed curve for stable TubeGeometry
-    const N = Math.max(128, Math.min(512, ptsPx.length * 4));
-    // Build cumulative lengths
-    const segs = [];
-    let total = 0;
-    for (let i = 0; i < ptsPx.length; i++) {
-      const a = ptsPx[i];
-      const b = ptsPx[(i + 1) % ptsPx.length];
-      const d = Math.hypot(b.x - a.x, b.y - a.y);
-      segs.push(d);
-      total += d;
-    }
-    const out = [];
-    for (let k = 0; k < N; k++) {
-      const t = (k / N) * total;
-      let acc = 0, idx = 0;
-      while (idx < segs.length && acc + segs[idx] < t) { acc += segs[idx]; idx++; }
-      const a = ptsPx[idx % ptsPx.length];
-      const b = ptsPx[(idx + 1) % ptsPx.length];
-      const local = (t - acc) / (segs[idx] || 1);
-      out.push({ x: a.x + (b.x - a.x) * local, y: a.y + (b.y - a.y) * local });
-    }
+        // Guard: at least a triangle
+        if (approx.rows < 3) {
+          src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete(); approx.delete();
+          return [];
+        }
 
-    // 7) Normalize & scale to mm (fit longest side to ~70 mm)
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    out.forEach(p => { if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; });
-    const w = maxX - minX, h = maxY - minY;
-    const targetMaxMM = 70; // default cookie size ≈ 7 cm max dimension
-    const s = (w > h ? targetMaxMM / w : targetMaxMM / h);
-    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-    const points = out.map(p => ({ x: (p.x - cx) * s, y: (cy - p.y) * s })); // y flip to make +y up in view
+        // Convert to JS points array (pixels) via data32S (x,y interleaved)
+        const ptsPx = [];
+        const data = approx.data32S; // Int32Array length = rows*2
+        for (let i = 0; i < data.length; i += 2) {
+          ptsPx.push({ x: data[i], y: data[i + 1] });
+        }
 
-    // Cleanup
-    src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete(); approx.delete();
+        // 6) Resample to evenly spaced N points along the closed curve for stable TubeGeometry
+        const N = Math.max(128, Math.min(512, ptsPx.length * 4));
+        // Build cumulative lengths
+        const segs = [];
+        let total = 0;
+        for (let i = 0; i < ptsPx.length; i++) {
+          const a = ptsPx[i];
+          const b = ptsPx[(i + 1) % ptsPx.length];
+          const d = Math.hypot(b.x - a.x, b.y - a.y);
+          segs.push(d);
+          total += d;
+        }
+        const out = [];
+        for (let k = 0; k < N; k++) {
+          const t = (k / N) * total;
+          let acc = 0, idx = 0;
+          while (idx < segs.length && acc + segs[idx] < t) { acc += segs[idx]; idx++; }
+          const a = ptsPx[idx % ptsPx.length];
+          const b = ptsPx[(idx + 1) % ptsPx.length];
+          const local = (t - acc) / (segs[idx] || 1);
+          out.push({ x: a.x + (b.x - a.x) * local, y: a.y + (b.y - a.y) * local });
+        }
 
-    log(`Contour geselecteerd (oppervlakte px²: ${bestArea.toFixed(0)}, punten: ${points.length}). Schaal → max ${targetMaxMM} mm.`);
-    return points;
-  }
+        // 7) Normalize & scale to mm (fit longest side to ~70 mm)
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        out.forEach(p => { if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y; });
+        const w = maxX - minX, h = maxY - minY;
+        const targetMaxMM = 70; // default cookie size ≈ 7 cm max dimension
+        const s = (w > h ? targetMaxMM / w : targetMaxMM / h);
+        const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+        const points = out.map(p => ({ x: (p.x - cx) * s, y: (cy - p.y) * s })); // y flip to make +y up in view
 
-  // 2) Validatie: enkele lijn + gesloten vorm: enkele lijn + gesloten vorm
-  function validatePathClosedSingle(points) {
-    log('Valideren van pad');
-    if (!points || points.length < 3) return { ok: false, reason: 'Onvoldoende punten gedetecteerd' };
-    // Eenvoudige closure check: eerste & laatste binnen drempel
-    const first = points[0], last = points[points.length - 1];
-    const dx = first.x - last.x, dy = first.y - last.y;
-    const closed = Math.hypot(dx, dy) < 1e-1;
-    if (!closed) return { ok: false, reason: 'Contour is niet gesloten' };
-    return { ok: true };
-  }
+        // Cleanup
+        src.delete(); gray.delete(); blur.delete(); thresh.delete(); morph.delete(); kernel.delete(); contours.delete(); hierarchy.delete(); approx.delete();
 
-  // 3) 3D genereren: extrusie + bovenop verdikking (bead)
-  function generate3DFromPath(points, opts = { lineWidthMM: 1.5, baseHeightMM: 10, beadWidthMM: 3, beadHeightMM: 2 }) {
-    log('Genereer 3D-mesh');
-    const { lineWidthMM, baseHeightMM, beadWidthMM, beadHeightMM } = opts;
+        log(`Contour geselecteerd (oppervlakte px²: ${bestArea.toFixed(0)}, punten: ${points.length}). Schaal → max ${targetMaxMM} mm.`);
+        return points;
+      }
 
-    // Maak een shape van de polyline met buffer (stroke → filled shape)
-    // Simpel: maak een buis (TubeGeometry) rond het pad en merge segmenten (benadering van koekrand)
-    const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, 0, p.y)), true, 'catmullrom', 0.1);
-    const tubularSegments = Math.max(64, points.length);
-    const radius = lineWidthMM / 2;
-    const base = new THREE.TubeGeometry(curve, tubularSegments, radius, 16, true);
+      // 2) Validatie: enkele lijn + gesloten vorm: enkele lijn + gesloten vorm
+      function validatePathClosedSingle(points) {
+        log('Valideren van pad');
+        if (!points || points.length < 3) return { ok: false, reason: 'Onvoldoende punten gedetecteerd' };
+        // Eenvoudige closure check: eerste & laatste binnen drempel
+        const first = points[0], last = points[points.length - 1];
+        const dx = first.x - last.x, dy = first.y - last.y;
+        const closed = Math.hypot(dx, dy) < 1e-1;
+        if (!closed) return { ok: false, reason: 'Contour is niet gesloten' };
+        return { ok: true };
+      }
 
-    // Maak een mesh en extrudeer in Z (hoogte): we gebruiken scale/clone per laag (benadering)
-    base.translate(0, 0, 0);
-    // Maak een basis-mesh en extrudeer via instancing (truc: schaalverandering in y)
-    // Simpler: we gebruiken base als grondvlak en extruderen door te kopiëren in Y.
-    const baseMesh = new THREE.Mesh(base);
-    baseMesh.geometry.rotateX(Math.PI / 2);
-    baseMesh.geometry.translate(0, baseHeightMM/2, 0);
-    const baseGeom = baseMesh.geometry.clone();
+      // 3) 3D genereren: extrusie + bovenop verdikking (bead)
+      function generate3DFromPath(points, opts = { lineWidthMM: 1.5, baseHeightMM: 10, beadWidthMM: 3, beadHeightMM: 2 }) {
+        log('Genereer 3D-mesh');
+        const { lineWidthMM, baseHeightMM, beadWidthMM, beadHeightMM } = opts;
 
-    // Bead (bovenop verdikking)
-    const bead = new THREE.TubeGeometry(curve, tubularSegments, beadWidthMM / 2, 12, true);
-    const beadMesh = new THREE.Mesh(bead);
-    beadMesh.geometry.rotateX(Math.PI / 2);
-    beadMesh.geometry.translate(0, baseHeightMM + beadHeightMM/2, 0);
-    const beadGeom = beadMesh.geometry.clone();
+        // Maak een shape van de polyline met buffer (stroke → filled shape)
+        // Simpel: maak een buis (TubeGeometry) rond het pad en merge segmenten (benadering van koekrand)
+        const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p.x, 0, p.y)), true, 'catmullrom', 0.1);
+        const tubularSegments = Math.max(64, points.length);
+        const radius = lineWidthMM / 2;
+        const base = new THREE.TubeGeometry(curve, tubularSegments, radius, 16, true);
 
-    // Materialen
-    const mat = new THREE.MeshStandardMaterial({ metalness: 0.1, roughness: 0.6 });
+        // Maak een mesh en extrudeer in Z (hoogte): we gebruiken scale/clone per laag (benadering)
+        base.translate(0, 0, 0);
+        // Maak een basis-mesh en extrudeer via instancing (truc: schaalverandering in y)
+        // Simpler: we gebruiken base als grondvlak en extruderen door te kopiëren in Y.
+        const baseMesh = new THREE.Mesh(base);
+        baseMesh.geometry.rotateX(Math.PI / 2);
+        baseMesh.geometry.translate(0, baseHeightMM/2, 0);
+        const baseGeom = baseMesh.geometry.clone();
 
-    // Groep bouwen
-    cookieGroup.clear();
-    const baseMeshOut = new THREE.Mesh(baseGeom, mat);
-    const beadMeshOut = new THREE.Mesh(beadGeom, mat);
-    cookieGroup.add(baseMeshOut);
-    cookieGroup.add(beadMeshOut);
+        // Bead (bovenop verdikking)
+        const bead = new THREE.TubeGeometry(curve, tubularSegments, beadWidthMM / 2, 12, true);
+        const beadMesh = new THREE.Mesh(bead);
+        beadMesh.geometry.rotateX(Math.PI / 2);
+        beadMesh.geometry.translate(0, baseHeightMM + beadHeightMM/2, 0);
+        const beadGeom = beadMesh.geometry.clone();
 
-    // Bewaar laatste geometrie als samengevoegd voor STL-export
-    const merged = THREE.BufferGeometryUtils?.mergeGeometries
-      ? THREE.BufferGeometryUtils.mergeGeometries([baseGeom, beadGeom])
-      : baseGeom; // fallback
-    lastGeometry = merged;
+        // Materialen
+        const mat = new THREE.MeshStandardMaterial({ metalness: 0.1, roughness: 0.6 });
 
-    // Framen
-    const bb = new THREE.Box3().setFromObject(cookieGroup);
-    const size = bb.getSize(new THREE.Vector3());
-    const center = bb.getCenter(new THREE.Vector3());
-    controls.target.copy(center);
-    camera.position.set(center.x + size.length() * 0.8, center.y + size.length() * 0.6, center.z + size.length() * 0.8);
-    controls.update();
-  }
+        // Groep bouwen
+        cookieGroup.clear();
+        const baseMeshOut = new THREE.Mesh(baseGeom, mat);
+        const beadMeshOut = new THREE.Mesh(beadGeom, mat);
+        cookieGroup.add(baseMeshOut);
+        cookieGroup.add(beadMeshOut);
 
-  // 4) STL export
-  function downloadSTL(filename = 'cookie.stl') {
-    if (!lastGeometry) { setError('Geen model om te exporteren.'); return; }
-    const exporter = new STLExporter();
-    const mesh = new THREE.Mesh(lastGeometry, new THREE.MeshNormalMaterial());
-    const data = exporter.parse(mesh, { binary: true });
-    const blob = new Blob([data], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
-  }
+        // Bewaar laatste geometrie als samengevoegd voor STL-export
+        const merged = BufferGeometryUtils.mergeGeometries
+          ? THREE.BufferGeometryUtils.mergeGeometries([baseGeom, beadGeom])
+          : baseGeom; // fallback
+        lastGeometry = merged;
 
-  // Bestandsinvoer
-  fileInput.addEventListener('change', async () => {
-    setError('');
-    lastGeometry = null;
-    if (!fileInput.files?.length) { setStatus('Nog geen bestand gekozen.'); btnProcess.disabled = true; return; }
-    const file = fileInput.files[0];
-    setStatus(`Bestand: ${file.name}`);
-    btnProcess.disabled = false;
-    log(`Bestand ontvangen (${Math.round(file.size/1024)} kB)`);
-  });
+        // Framen
+        const bb = new THREE.Box3().setFromObject(cookieGroup);
+        const size = bb.getSize(new THREE.Vector3());
+        const center = bb.getCenter(new THREE.Vector3());
+        controls.target.copy(center);
+        camera.position.set(center.x + size.length() * 0.8, center.y + size.length() * 0.6, center.z + size.length() * 0.8);
+        controls.update();
+      }
 
-  // Verwerkingstrigger
-  btnProcess.addEventListener('click', async () => {
-    try {
-      setError('');
-      btnProcess.disabled = true;
-      btnDownload.disabled = true;
-      setStatus('Bezig met verwerken…');
-      log('Lees afbeelding in…');
+      // 4) STL export
+      function downloadSTL(filename = 'cookie.stl') {
+        if (!lastGeometry) { setError('Geen model om te exporteren.'); return; }
+        const exporter = new STLExporter();
+        const mesh = new THREE.Mesh(lastGeometry, new THREE.MeshNormalMaterial());
+        const data = exporter.parse(mesh, { binary: true });
+        const blob = new Blob([data], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+      }
 
-      const file = fileInput.files?.[0];
-      if (!file) { setError('Geen bestand geselecteerd.'); setStatus('Geen bestand.', 'error'); return; }
+      // Bestandsinvoer
+      fileInput.addEventListener('change', async () => {
+        setError('');
+        lastGeometry = null;
+        if (!fileInput.files?.length) { setStatus('Nog geen bestand gekozen.'); btnProcess.disabled = true; return; }
+        const file = fileInput.files[0];
+        setStatus(`Bestand: ${file.name}`);
+        btnProcess.disabled = false;
+        log(`Bestand ontvangen (${Math.round(file.size/1024)} kB)`);
+      });
 
-      const img = await loadImageFromFile(file);
+      // Verwerkingstrigger
+      btnProcess.addEventListener('click', async () => {
+        try {
+          setError('');
+          btnProcess.disabled = true;
+          btnDownload.disabled = true;
+          setStatus('Bezig met verwerken…');
+          log('Lees afbeelding in…');
 
-      const points = await rasterToSingleClosedPath(img);
-      const val = validatePathClosedSingle(points);
-      if (!val.ok) { setError(val.reason); setStatus('Validatie mislukt', 'error'); btnProcess.disabled = false; return; }
+          const file = fileInput.files?.[0];
+          if (!file) { setError('Geen bestand geselecteerd.'); setStatus('Geen bestand.', 'error'); return; }
 
-      generate3DFromPath(points);
-      btnDownload.disabled = false;
-      setStatus('Model gereed ✅', 'ok');
-      log('Klaar. STL kan worden gedownload.');
-    } catch (e) {
-      console.error(e);
-      setError('Fout tijdens verwerking: ' + (e && e.message ? e.message : 'onbekend'));
-      setStatus('Fout tijdens verwerking', 'error');
-      btnProcess.disabled = false;
-    }
-  });
+          const img = await loadImageFromFile(file);
 
-  // Download
-  btnDownload.addEventListener('click', () => downloadSTL());
+          const points = await rasterToSingleClosedPath(img);
+          const val = validatePathClosedSingle(points);
+          if (!val.ok) { setError(val.reason); setStatus('Validatie mislukt', 'error'); btnProcess.disabled = false; return; }
 
-  // Info in debug bij start
-  log('App gestart. Kies een foto van een lijnentekening.');
-  log('NB: De huidige versie gebruikt een placeholder-cirkel tot de vectorisatie is geïmplementeerd.');
-</script>
-<!-- BufferGeometryUtils polyfill loader -->
-<script type="module">
-  import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-  import 'https://unpkg.com/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js';
-  // noop: ensures BufferGeometryUtils registers itself in THREE namespace for earlier script
-</script>
+          generate3DFromPath(points);
+          btnDownload.disabled = false;
+          setStatus('Model gereed ✅', 'ok');
+          log('Klaar. STL kan worden gedownload.');
+        } catch (e) {
+          console.error(e);
+          setError('Fout tijdens verwerking: ' + (e && e.message ? e.message : 'onbekend'));
+          setStatus('Fout tijdens verwerking', 'error');
+          btnProcess.disabled = false;
+        }
+      });
 
-  </body>
+      // Download
+      btnDownload.addEventListener('click', () => downloadSTL());
+
+      // Info in debug bij start
+      log('App gestart. Kies een foto van een lijnentekening.');
+      log('NB: De huidige versie gebruikt een placeholder-cirkel tot de vectorisatie is geïmplementeerd.');
+    </script>
+    <!-- BufferGeometryUtils polyfill loader -->
+    </body>
 </html>
