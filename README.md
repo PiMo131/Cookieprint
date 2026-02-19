@@ -64,7 +64,11 @@ Can't wait to start baking? Check out the working app here: https://pimo131.gith
 ---
 
 ## Usage
-
+###easy mode
+```
+1. go to the link in the top for the live website mode
+```
+###locally running
 ```
 1. Download cookiecut-v2.html
 2. Open in any modern browser (Chrome, Firefox, Safari, Edge)
