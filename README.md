@@ -5,6 +5,9 @@
 CookieCut is a single-file browser app that turns any photo or line drawing into a 3D-printable cookie cutter STL — no installation, no server, no dependencies to install. Just open the HTML file and go.
 
 ---
+Can't wait to start baking? Check out the working app here: https://pimo131.github.io/Cookieprint/
+---
+
 <img width="1889" height="785" alt="image" src="https://github.com/user-attachments/assets/5107dc5a-c5cd-4405-ba5d-e68fde1791cf" />
 
 <img width="1625" height="740" alt="image" src="https://github.com/user-attachments/assets/b134b5b3-c098-414f-ac32-680143e744ac" />
