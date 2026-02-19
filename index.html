@@ -1,551 +1,1379 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Koekjesvorm Generator</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 15px;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 26px;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-        
-        .upload-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .upload-btn {
-            padding: 50px 20px;
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            background: #f8f9ff;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-        
-        .upload-btn:active {
-            transform: scale(0.98);
-        }
-        
-        .upload-btn:hover {
-            border-color: #764ba2;
-            background: #f0f1ff;
-        }
-        
-        .upload-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-        
-        .upload-label {
-            color: #667eea;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        input[type="file"] {
-            display: none;
-        }
-        
-        #preview {
-            display: none;
-            margin: 20px 0;
-        }
-        
-        canvas {
-            max-width: 100%;
-            border-radius: 10px;
-            border: 2px solid #e0e0e0;
-            display: block;
-            margin: 0 auto;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        button {
-            flex: 1;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        button:active {
-            transform: scale(0.98);
-        }
-        
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .secondary-btn {
-            background: #e0e0e0;
-            color: #333;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            display: none;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            display: block;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            display: block;
-        }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            display: block;
-        }
-        
-        .info-box {
-            background: #f8f9ff;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-size: 13px;
-            color: #666;
-        }
-        
-        .info-box ul {
-            margin-left: 20px;
-            margin-top: 8px;
-        }
-        
-        .info-box li {
-            margin: 5px 0;
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 22px;
-            }
-            
-            .upload-buttons {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CookieCut v2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root {
+  --bg:#07070c; --panel:#0f0f18; --panel2:#161622; --border:#1f1f30;
+  --border2:#2a2a42; --text:#e8e8f0; --muted:#4a4a6a;
+  --accent:#f59e0b; --accent-dim:rgba(245,158,11,.1);
+  --cyan:#22d3ee; --green:#4ade80; --red:#f87171; --purple:#a78bfa;
+  --font: 'Courier New', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);
+  height:100vh;display:grid;grid-template-rows:48px 1fr;overflow:hidden}
+
+/* ─ Header ─ */
+header{display:flex;align-items:center;padding:0 20px;gap:16px;
+  background:var(--panel);border-bottom:1px solid var(--border)}
+.logo{font-size:16px;font-weight:bold;color:var(--accent);letter-spacing:-.5px}
+.logo span{color:var(--muted)}
+.hinfo{display:flex;gap:14px;font-size:10px;color:var(--muted);margin-left:auto}
+.hinfo .v{color:var(--cyan)}
+.hbtn{padding:5px 12px;border:1px solid var(--border2);background:transparent;
+  color:var(--text);font-family:var(--font);font-size:10px;border-radius:3px;
+  cursor:pointer;transition:all .15s}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+.hbtn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+
+/* ─ Layout ─ */
+main{display:grid;grid-template-columns:260px 1fr;overflow:hidden}
+.sidebar{background:var(--panel);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden}
+
+/* ─ Steps ─ */
+.steps{padding:12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.step{display:flex;align-items:center;gap:8px;padding:6px 8px;
+  border-radius:4px;margin-bottom:1px;cursor:default}
+.step.clickable{cursor:pointer}.step.clickable:hover{background:var(--panel2)}
+.step.active{background:var(--accent-dim)}
+.snum{width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.step.active .snum{background:var(--accent);border-color:var(--accent);color:#000;font-weight:bold}
+.step.done .snum{border-color:var(--green);color:var(--green)}
+.slabel{font-size:11px}.ssub{font-size:9px;color:var(--muted);margin-top:1px}
+
+/* ─ Controls ─ */
+.controls{flex:1;overflow-y:auto;padding:14px;scrollbar-width:thin;
+  scrollbar-color:var(--border2) transparent}
+.cgroup{display:none;flex-direction:column;gap:11px}
+.cgroup.active{display:flex}
+.clabel{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px}
+.chint{font-size:11px;color:var(--muted);line-height:1.6;font-style:italic}
+.cdiv{height:1px;background:var(--border);margin:2px 0}
+
+/* ─ Buttons ─ */
+.btn{padding:8px 12px;border:1px solid var(--border2);background:transparent;
+  color:var(--text);font-family:var(--font);font-size:10px;border-radius:3px;
+  cursor:pointer;transition:all .15s;width:100%;text-align:center}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:bold}
+.btn.primary:hover:not(:disabled){background:#d97706;border-color:#d97706}
+.btn.cyan{border-color:var(--cyan);color:var(--cyan)}
+.btn.cyan:hover:not(:disabled){background:rgba(34,211,238,.08)}
+.btn.red{border-color:var(--red);color:var(--red)}
+.btn.red:hover:not(:disabled){background:rgba(248,113,113,.08)}
+.btn.purple{border-color:var(--purple);color:var(--purple)}
+.btn.purple:hover:not(:disabled){background:rgba(167,139,250,.08)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.btn-row{display:flex;gap:6px}.btn-row .btn{flex:1}
+
+/* ─ Inputs ─ */
+input[type=file]{display:none}
+.ifield{display:flex;flex-direction:column;gap:4px}
+.irow{display:flex;gap:0}
+.irow input{border-radius:3px 0 0 3px!important;flex:1}
+.iunit{padding:0 8px;background:var(--panel2);border:1px solid var(--border2);
+  border-left:none;border-radius:0 3px 3px 0;font-size:10px;color:var(--muted);
+  display:flex;align-items:center}
+input[type=number],input[type=text]{background:var(--bg);border:1px solid var(--border2);
+  color:var(--text);padding:7px 8px;border-radius:3px;font-family:var(--font);
+  font-size:11px;width:100%;outline:none;transition:border-color .15s}
+input[type=number]:focus,input[type=text]:focus{border-color:var(--accent)}
+input[type=range]{-webkit-appearance:none;width:100%;height:2px;
+  background:var(--border2);border-radius:1px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
+  border-radius:50%;background:var(--accent);cursor:pointer}
+.rrow{display:flex;align-items:center;gap:8px}
+.rrow input{flex:1}.rval{font-size:10px;color:var(--cyan);min-width:28px;text-align:right}
+
+/* ─ Checkbox ─ */
+.cbox{display:flex;align-items:flex-start;gap:8px;cursor:pointer}
+.cbox input[type=checkbox]{display:none}
+.cbox-box{width:16px;height:16px;border:1px solid var(--border2);border-radius:2px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+  font-size:9px;color:transparent;transition:all .15s}
+.cbox.checked .cbox-box{background:var(--accent);border-color:var(--accent);color:#000}
+.cbox-t{font-size:11px}.cbox-s{font-size:9px;color:var(--muted);margin-top:1px}
+
+/* ─ Info grid ─ */
+.igrid{background:var(--panel2);border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.irow2{display:flex;justify-content:space-between;padding:6px 9px;font-size:10px;
+  border-bottom:1px solid var(--border)}
+.irow2:last-child{border-bottom:none}
+.irow2 .k{color:var(--muted)}.irow2 .v{color:var(--cyan)}
+.irow2 .v.ok{color:var(--green)}.irow2 .v.warn{color:var(--accent)}
+
+/* ─ Scale pts ─ */
+.spts{display:flex;gap:5px}
+.spt{flex:1;padding:5px 6px;background:var(--panel2);border:1px solid var(--border);
+  border-radius:3px;font-size:9px;color:var(--muted);text-align:center}
+.spt.set{border-color:var(--green);color:var(--green)}
+.slv{height:2px;background:var(--border);border-radius:1px;overflow:hidden}
+.slv-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));
+  border-radius:1px;transition:width .3s;width:0%}
+
+/* ─ Mode badge ─ */
+.mode-row{display:flex;gap:5px}
+.mbadge{padding:3px 8px;border-radius:10px;font-size:9px;border:1px solid var(--border);
+  color:var(--muted);background:var(--panel2)}
+.mbadge.on{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.08)}
+
+/* ─ Canvas ─ */
+.canvas-wrap{position:relative;overflow:hidden;background:#040408;
+  background-image:linear-gradient(rgba(245,158,11,.012) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(245,158,11,.012) 1px,transparent 1px);
+  background-size:32px 32px}
+#mainCanvas{display:block;position:absolute;top:0;left:0}
+.ctbar{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:10;pointer-events:none}
+.cbadge{padding:3px 9px;background:rgba(15,15,24,.92);border:1px solid var(--border);
+  border-radius:10px;font-size:9px;color:var(--muted);backdrop-filter:blur(4px)}
+.cbadge.hi{border-color:var(--accent);color:var(--accent)}
+.cbadge.ok{border-color:var(--green);color:var(--green)}
+.cbadge.draw{border-color:var(--purple);color:var(--purple)}
+.empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;pointer-events:none}
+.empty-icon{font-size:64px;opacity:.12;margin-bottom:10px}
+.empty-text{font-size:12px;color:var(--muted);line-height:1.8}
+
+/* ─ 3D Modal ─ */
+#previewModal{position:fixed;inset:0;background:rgba(0,0,0,.85);
+  display:none;align-items:center;justify-content:center;z-index:200}
+#previewModal.open{display:flex}
+.modal-box{width:86vw;height:88vh;background:var(--panel);
+  border:1px solid var(--border2);border-radius:6px;
+  display:flex;flex-direction:column;overflow:hidden}
+.modal-header{display:flex;align-items:center;padding:0 16px;height:44px;
+  border-bottom:1px solid var(--border);flex-shrink:0;gap:12px}
+.modal-title{font-size:13px;color:var(--text)}
+.modal-info{font-size:10px;color:var(--muted);flex:1}
+.modal-close{padding:4px 10px;border:1px solid var(--border2);background:transparent;
+  color:var(--muted);font-family:var(--font);font-size:10px;border-radius:3px;cursor:pointer}
+.modal-close:hover{color:var(--red);border-color:var(--red)}
+.modal-body{flex:1;position:relative;overflow:hidden}
+#previewCanvas{width:100%;height:100%;display:block}
+.modal-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  padding:4px 12px;background:rgba(15,15,24,.8);border:1px solid var(--border);
+  border-radius:10px;font-size:9px;color:var(--muted);pointer-events:none}
+
+/* ─ Toast ─ */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--panel2);border:1px solid var(--border2);border-radius:4px;
+  padding:8px 16px;font-size:11px;transition:transform .3s ease;z-index:1000;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.error{border-color:var(--red);color:var(--red)}
+#toast.success{border-color:var(--green);color:var(--green)}
+#toast.info{border-color:var(--cyan);color:var(--cyan)}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>🍪 Koekjesvorm Generator</h1>
-        <p class="subtitle">Upload een lijntekening en maak er een 3D koekjesvorm van!</p>
-        
-        <div class="upload-buttons">
-            <div class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                <div class="upload-icon">📁</div>
-                <div class="upload-label">Van apparaat</div>
-            </div>
-            <div class="upload-btn" onclick="document.getElementById('cameraInput').click()">
-                <div class="upload-icon">📷</div>
-                <div class="upload-label">Maak foto</div>
-            </div>
-        </div>
-        
-        <input type="file" id="fileInput" accept="image/*">
-        <input type="file" id="cameraInput" accept="image/*" capture="environment">
-        
-        <div id="preview">
-            <canvas id="canvas"></canvas>
-        </div>
-        
-        <div class="button-group" id="actionButtons" style="display: none;">
-            <button class="secondary-btn" onclick="resetApp()">Opnieuw</button>
-            <button id="generateBtn" onclick="generateSTL()">Download STL</button>
-        </div>
-        
-        <div id="status" class="status"></div>
-        
-        <div class="info-box">
-            <strong>💡 Tips:</strong>
-            <ul>
-                <li>Gebruik een zwarte of blauwe lijn op witte achtergrond</li>
-                <li>Zorg voor een gesloten contour (bijv. cirkel, vierkant)</li>
-                <li>Het model wordt 10mm hoog met een 2mm dikke rand</li>
-            </ul>
-        </div>
+
+<header>
+  <div class="logo">Cookie<span>Cut</span> <span style="color:var(--accent);opacity:.5">v2</span></div>
+  <div class="hinfo">
+    <span>Schaal: <span class="v" id="hdrScale">—</span></span>
+    <span>Punten: <span class="v" id="hdrPts">—</span></span>
+    <span>Hoogte: <span class="v" id="hdrH">—</span></span>
+  </div>
+  <button class="hbtn" id="preview3DBtn" onclick="openPreview()" style="margin-left:8px" disabled>▣ 3D Preview</button>
+</header>
+
+<main>
+<div class="sidebar">
+  <div class="steps">
+    <div class="step active" id="st1"><div class="snum">1</div><div><div class="slabel">Upload afbeelding</div><div class="ssub">Foto of lijntekening</div></div></div>
+    <div class="step" id="st2"><div class="snum">2</div><div><div class="slabel">Referentie instellen</div><div class="ssub">2 punten + mm</div></div></div>
+    <div class="step" id="st3"><div class="snum">3</div><div><div class="slabel">Contour traceren</div><div class="ssub">Auto of handmatig</div></div></div>
+    <div class="step" id="st4"><div class="snum">4</div><div><div class="slabel">Configureren</div><div class="ssub">Dikte, hoogte, flens</div></div></div>
+    <div class="step" id="st5"><div class="snum">5</div><div><div class="slabel">Exporteren</div><div class="ssub">STL downloaden</div></div></div>
+  </div>
+  <div class="controls">
+
+    <!-- ── Step 1 ── -->
+    <div class="cgroup active" id="ctrl-1">
+      <div class="clabel">Afbeelding</div>
+      <div class="chint">Upload een foto of lijntekening. Donkere lijnen op lichte achtergrond werken het beste voor auto-traceer.</div>
+      <button class="btn primary" onclick="document.getElementById('fi').click()">📁 Kies afbeelding…</button>
+      <input type="file" id="fi" accept="image/*" onchange="handleUpload(event)">
     </div>
 
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let processedImage = null;
+    <!-- ── Step 2 ── -->
+    <div class="cgroup" id="ctrl-2">
+      <div class="clabel">Referentie meting</div>
+      <div class="chint">Klik 2 punten in de afbeelding waarvan je de afstand kent.</div>
+      <div class="spts"><div class="spt" id="sp1">Punt 1</div><div class="spt" id="sp2">Punt 2</div></div>
+      <div class="slv"><div class="slv-fill" id="slvf"></div></div>
+      <div class="ifield">
+        <div class="clabel">Afstand in mm</div>
+        <div class="irow">
+          <input type="number" id="refMm" placeholder="bv. 80" min="1" step="0.1">
+          <div class="iunit">mm</div>
+        </div>
+      </div>
+      <button class="btn primary" id="scaleBtn" onclick="confirmScale()" disabled>✓ Bevestig schaal</button>
+      <button class="btn red" onclick="resetScale()">↺ Opnieuw</button>
+      <div class="igrid" id="scaleInfo" style="display:none">
+        <div class="irow2"><span class="k">Pixels/mm</span><span class="v" id="infoPxMm">—</span></div>
+        <div class="irow2"><span class="k">Lijnlengte</span><span class="v" id="infoLinePx">—</span></div>
+      </div>
+    </div>
 
-        document.getElementById('fileInput').addEventListener('change', handleFile);
-        document.getElementById('cameraInput').addEventListener('change', handleFile);
+    <!-- ── Step 3 ── -->
+    <div class="cgroup" id="ctrl-3">
+      <div class="clabel">Modus</div>
+      <div class="mode-row">
+        <div class="mbadge" id="modeAuto">Auto</div>
+        <div class="mbadge" id="modeManual">Handmatig</div>
+        <div class="mbadge" id="modeEdit">Bewerken</div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="clabel">Auto-traceer</div>
+      <div class="ifield">
+        <div class="clabel">Drempelwaarde</div>
+        <div class="rrow">
+          <input type="range" id="thSlider" min="20" max="230" value="128" oninput="document.getElementById('thVal').textContent=this.value">
+          <span class="rval" id="thVal">128</span>
+        </div>
+      </div>
+      <div class="ifield">
+        <div class="clabel">Vereenvoudiging</div>
+        <div class="rrow">
+          <input type="range" id="rdpSlider" min="1" max="25" value="4" oninput="document.getElementById('rdpVal').textContent=this.value+'px'">
+          <span class="rval" id="rdpVal">4px</span>
+        </div>
+      </div>
+      <button class="btn primary" onclick="runAutoTrace()">⚡ Auto-traceer (Marching Squares)</button>
+      <div class="cdiv"></div>
+      <div class="clabel">Handmatig tekenen</div>
+      <div class="chint">Klik om punten te plaatsen. Klik dicht bij het startpunt of druk Enter om te sluiten. Esc om te annuleren.</div>
+      <button class="btn purple" onclick="startManualDraw()">✏ Start handmatig tekenen</button>
+      <div class="cdiv"></div>
+      <div class="clabel">Bewerken</div>
+      <div class="chint">Sleep hoekpunten. Klik op een zijkant om een punt toe te voegen. Dubbelklik op een punt om te verwijderen.</div>
+      <div class="btn-row">
+        <button class="btn" onclick="simplifyContour()">↓ Minder punten</button>
+        <button class="btn" onclick="smoothContour()">〜 Smooth</button>
+      </div>
+      <div class="igrid">
+        <div class="irow2"><span class="k">Hoekpunten</span><span class="v" id="infoPts">—</span></div>
+        <div class="irow2"><span class="k">Omtrek</span><span class="v" id="infoPerim">—</span></div>
+        <div class="irow2"><span class="k">Intersecties</span><span class="v" id="infoISect">—</span></div>
+      </div>
+      <button class="btn" onclick="cleanIntersections()" id="cleanBtn" style="display:none">⚠ Herstel zelf-intersecties</button>
+      <button class="btn cyan" onclick="goToStep(4)" id="traceNextBtn" disabled>Volgende →</button>
+    </div>
 
-        function handleFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            showStatus('Afbeelding laden...', 'info');
-            
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    processImage(img);
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
+    <!-- ── Step 4 ── -->
+    <div class="cgroup" id="ctrl-4">
+      <div class="ifield">
+        <div class="clabel">Wanddikte</div>
+        <div class="irow"><input type="number" id="wallMm" value="2" min="0.4" max="20" step="0.1" oninput="updatePreview()"><div class="iunit">mm</div></div>
+      </div>
+      <div class="ifield">
+        <div class="clabel">Hoogte snijrand</div>
+        <div class="irow"><input type="number" id="heightMm" value="15" min="1" max="100" step="0.5" oninput="updatePreview()"><div class="iunit">mm</div></div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="cbox" id="flensLabel" onclick="toggleFlange()" style="cursor:pointer;user-select:none">
+        <div class="cbox-box" id="flensBox"></div>
+        <div><div class="cbox-t">Flens toevoegen</div>
+        <div class="cbox-s">3× wanddikte breed · 2× wanddikte hoog</div></div>
+      </div>
+      <div class="cdiv"></div>
+      <div class="igrid" id="cfgInfo">
+        <div class="irow2"><span class="k">Snijdiepte</span><span class="v" id="ci-h">—</span></div>
+        <div class="irow2"><span class="k">Totale hoogte</span><span class="v" id="ci-th">—</span></div>
+        <div class="irow2"><span class="k">Wanddikte</span><span class="v" id="ci-w">—</span></div>
+        <div class="irow2" id="ci-fr" style="display:none"><span class="k">Flens</span><span class="v ok">Aanwezig</span></div>
+      </div>
+      <button class="btn primary" onclick="goToStep(5)">Genereer STL →</button>
+      <button class="btn" onclick="openPreview()" id="prevBtn4" disabled>▣ 3D Preview</button>
+    </div>
 
-        function processImage(img) {
-            // Resize voor performance op mobiel
-            const maxSize = 800;
-            let w = img.width;
-            let h = img.height;
-            
-            if (w > h && w > maxSize) {
-                h = (h * maxSize) / w;
-                w = maxSize;
-            } else if (h > maxSize) {
-                w = (w * maxSize) / h;
-                h = maxSize;
-            }
-            
-            canvas.width = w;
-            canvas.height = h;
-            ctx.drawImage(img, 0, 0, w, h);
-            
-            // Edge detection
-            const imageData = ctx.getImageData(0, 0, w, h);
-            const edges = detectEdges(imageData);
-            ctx.putImageData(edges, 0, 0);
-            
-            processedImage = edges;
-            
-            document.getElementById('preview').style.display = 'block';
-            document.getElementById('actionButtons').style.display = 'flex';
-            showStatus('Lijnen gedetecteerd! Klik op "Download STL" om het 3D model te maken.', 'success');
-        }
+    <!-- ── Step 5 ── -->
+    <div class="cgroup" id="ctrl-5">
+      <div class="clabel">Export</div>
+      <div class="igrid" id="expInfo">
+        <div class="irow2"><span class="k">Driehoeken</span><span class="v" id="ei-t">—</span></div>
+        <div class="irow2"><span class="k">Bestandsgrootte</span><span class="v" id="ei-s">—</span></div>
+        <div class="irow2"><span class="k">Breedte</span><span class="v" id="ei-bw">—</span></div>
+        <div class="irow2"><span class="k">Hoogte (vorm)</span><span class="v" id="ei-bh">—</span></div>
+      </div>
+      <button class="btn primary" id="dlBtn" onclick="downloadSTL()">⬇ Download STL</button>
+      <button class="btn cyan" onclick="openPreview()">▣ Open 3D Preview</button>
+      <button class="btn" onclick="goToStep(4)">← Terug</button>
+      <div class="chint" style="margin-top:4px">Compatibel met Cura, PrusaSlicer, Bambu Studio.</div>
+    </div>
 
-        function detectEdges(imageData) {
-            const data = imageData.data;
-            const w = imageData.width;
-            const h = imageData.height;
-            const output = ctx.createImageData(w, h);
-            
-            // Converteer naar grijswaarden en detecteer randen
-            for (let y = 1; y < h - 1; y++) {
-                for (let x = 1; x < w - 1; x++) {
-                    const idx = (y * w + x) * 4;
-                    
-                    // Grijswaarde
-                    const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-                    
-                    // Simpele edge detection (Sobel-achtig)
-                    const idx_l = (y * w + (x - 1)) * 4;
-                    const idx_r = (y * w + (x + 1)) * 4;
-                    const idx_u = ((y - 1) * w + x) * 4;
-                    const idx_d = ((y + 1) * w + x) * 4;
-                    
-                    const gray_l = (data[idx_l] + data[idx_l + 1] + data[idx_l + 2]) / 3;
-                    const gray_r = (data[idx_r] + data[idx_r + 1] + data[idx_r + 2]) / 3;
-                    const gray_u = (data[idx_u] + data[idx_u + 1] + data[idx_u + 2]) / 3;
-                    const gray_d = (data[idx_d] + data[idx_d + 1] + data[idx_d + 2]) / 3;
-                    
-                    const gx = Math.abs(gray_r - gray_l);
-                    const gy = Math.abs(gray_d - gray_u);
-                    const edge = Math.sqrt(gx * gx + gy * gy);
-                    
-                    const val = edge > 50 ? 0 : 255;
-                    
-                    output.data[idx] = val;
-                    output.data[idx + 1] = val;
-                    output.data[idx + 2] = val;
-                    output.data[idx + 3] = 255;
-                }
-            }
-            
-            return output;
-        }
+  </div>
+</div>
 
-        function generateSTL() {
-            if (!processedImage) return;
-            
-            showStatus('3D model genereren...', 'info');
-            document.getElementById('generateBtn').disabled = true;
-            
-            // Extract contour points
-            const points = extractContour(processedImage);
-            
-            if (points.length < 3) {
-                showStatus('Geen geldige contour gevonden. Probeer een duidelijkere lijntekening.', 'error');
-                document.getElementById('generateBtn').disabled = false;
-                return;
-            }
-            
-            // Generate STL
-            const stl = createCookieCutterSTL(points);
-            downloadSTL(stl, 'koekjesvorm.stl');
-            
-            showStatus('STL bestand gedownload! Je kunt het nu 3D printen. 🎉', 'success');
-            document.getElementById('generateBtn').disabled = false;
-        }
+<div class="canvas-wrap" id="canvasWrap">
+  <canvas id="mainCanvas"></canvas>
+  <div class="ctbar">
+    <div class="cbadge hi" id="modeLabel">Stap 1</div>
+    <div class="cbadge draw" id="drawLabel" style="display:none">TEKEN MODUS — Enter=sluiten, Esc=annuleer</div>
+  </div>
+  <div class="empty" id="emptyState">
+    <div class="empty-icon">🍪</div>
+    <div class="empty-text">Upload een foto of lijntekening</div>
+  </div>
+</div>
+</main>
 
-        function extractContour(imageData) {
-            const data = imageData.data;
-            const w = imageData.width;
-            const h = imageData.height;
-            const points = [];
-            
-            // Find edge pixels en sample punten
-            const step = 3; // Sample elke N pixels voor performance
-            
-            for (let y = 0; y < h; y += step) {
-                for (let x = 0; x < w; x += step) {
-                    const idx = (y * w + x) * 4;
-                    if (data[idx] < 128) { // Zwarte pixel = rand
-                        // Normaliseer en centreer
-                        const px = ((x / w) - 0.5) * 100; // mm
-                        const py = ((y / h) - 0.5) * 100; // mm
-                        points.push({x: px, y: py});
-                    }
-                }
-            }
-            
-            // Sorteer punten in een volgorde (simpele benadering)
-            if (points.length > 0) {
-                const sorted = [points[0]];
-                const remaining = points.slice(1);
-                
-                while (remaining.length > 0 && sorted.length < 500) {
-                    const last = sorted[sorted.length - 1];
-                    let nearest = 0;
-                    let minDist = Infinity;
-                    
-                    for (let i = 0; i < remaining.length; i++) {
-                        const dx = remaining[i].x - last.x;
-                        const dy = remaining[i].y - last.y;
-                        const dist = dx * dx + dy * dy;
-                        if (dist < minDist) {
-                            minDist = dist;
-                            nearest = i;
-                        }
-                    }
-                    
-                    sorted.push(remaining[nearest]);
-                    remaining.splice(nearest, 1);
-                }
-                
-                return sorted;
-            }
-            
-            return points;
-        }
+<!-- 3D Preview Modal -->
+<div id="previewModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">▣ 3D Preview — Koekjesvorm</div>
+      <div class="modal-info" id="previewInfoTxt"></div>
+      <button class="modal-close" onclick="closePreview()">✕ Sluiten</button>
+    </div>
+    <div class="modal-body">
+      <canvas id="previewCanvas"></canvas>
+      <div class="modal-hint">Drag = roteren · Scroll = zoom · Rechts = pannen</div>
+    </div>
+  </div>
+</div>
 
-        function createCookieCutterSTL(points) {
-            const triangles = [];
-            const baseHeight = 0;
-            const wallHeight = 10; // 10mm (1cm)
-            const rimHeight = 12; // 10mm + 2mm
-            const wallThickness = 0.75; // 1.5mm / 2 (inner en outer wall)
-            const rimThickness = 1.5; // 3mm / 2
-            
-            // Maak muren en rand
-            for (let i = 0; i < points.length; i++) {
-                const p1 = points[i];
-                const p2 = points[(i + 1) % points.length];
-                
-                // Bereken normaal voor dikte
-                const dx = p2.x - p1.x;
-                const dy = p2.y - p1.y;
-                const len = Math.sqrt(dx * dx + dy * dy);
-                const nx = -dy / len;
-                const ny = dx / len;
-                
-                // Inner wall punten
-                const p1i = {x: p1.x + nx * wallThickness, y: p1.y + ny * wallThickness};
-                const p2i = {x: p2.x + nx * wallThickness, y: p2.y + ny * wallThickness};
-                
-                // Outer wall punten
-                const p1o = {x: p1.x - nx * wallThickness, y: p1.y - ny * wallThickness};
-                const p2o = {x: p2.x - nx * wallThickness, y: p2.y - ny * wallThickness};
-                
-                // Rim outer punten
-                const p1r = {x: p1.x - nx * rimThickness, y: p1.y - ny * rimThickness};
-                const p2r = {x: p2.x - nx * rimThickness, y: p2.y - ny * rimThickness};
-                
-                // Outer wall (base to wall height)
-                addQuad(triangles,
-                    [p1o.x, p1o.y, baseHeight],
-                    [p2o.x, p2o.y, baseHeight],
-                    [p2o.x, p2o.y, wallHeight],
-                    [p1o.x, p1o.y, wallHeight]
-                );
-                
-                // Inner wall
-                addQuad(triangles,
-                    [p1i.x, p1i.y, wallHeight],
-                    [p2i.x, p2i.y, wallHeight],
-                    [p2i.x, p2i.y, baseHeight],
-                    [p1i.x, p1i.y, baseHeight]
-                );
-                
-                // Top surface (tussen inner en outer)
-                addQuad(triangles,
-                    [p1i.x, p1i.y, wallHeight],
-                    [p1o.x, p1o.y, wallHeight],
-                    [p2o.x, p2o.y, wallHeight],
-                    [p2i.x, p2i.y, wallHeight]
-                );
-                
-                // Rim outer wall (wall height to rim height)
-                addQuad(triangles,
-                    [p1o.x, p1o.y, wallHeight],
-                    [p2o.x, p2o.y, wallHeight],
-                    [p2r.x, p2r.y, rimHeight],
-                    [p1r.x, p1r.y, rimHeight]
-                );
-                
-                // Rim top surface
-                addQuad(triangles,
-                    [p1o.x, p1o.y, wallHeight],
-                    [p1r.x, p1r.y, rimHeight],
-                    [p2r.x, p2r.y, rimHeight],
-                    [p2o.x, p2o.y, wallHeight]
-                );
-                
-                // Bottom surface
-                addQuad(triangles,
-                    [p1o.x, p1o.y, baseHeight],
-                    [p1i.x, p1i.y, baseHeight],
-                    [p2i.x, p2i.y, baseHeight],
-                    [p2o.x, p2o.y, baseHeight]
-                );
-            }
-            
-            return trianglesToSTL(triangles);
-        }
+<div id="toast"></div>
 
-        function addQuad(triangles, p1, p2, p3, p4) {
-            // Triangle 1
-            triangles.push([p1, p2, p3]);
-            // Triangle 2
-            triangles.push([p1, p3, p4]);
-        }
+<script>
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+const S = {
+  step: 1, img: null, imgW: 0, imgH: 0,
+  imgScale: 1, imgOffX: 0, imgOffY: 0,
+  scalePts: [],   // [{cx,cy}] canvas coords
+  pxPerMm: null,
+  polygon: [],    // [{x,y}] image pixel coords
+  // Manual draw
+  drawMode: false,
+  drawPts: [],    // building polygon
+  drawMouse: null,
+  // Editing
+  dragging: null,
+  hovEdge: null,
+  hovPt: null,
+  // Config
+  wallMm: 2, heightMm: 15, hasFlange: false,
+  // Generated
+  triData: null,
+  stlBuffer: null,
+};
 
-        function trianglesToSTL(triangles) {
-            let stl = 'solid cookie_cutter\n';
-            
-            for (const tri of triangles) {
-                const normal = calculateNormal(tri[0], tri[1], tri[2]);
-                stl += `  facet normal ${normal[0].toFixed(6)} ${normal[1].toFixed(6)} ${normal[2].toFixed(6)}\n`;
-                stl += '    outer loop\n';
-                for (const vertex of tri) {
-                    stl += `      vertex ${vertex[0].toFixed(6)} ${vertex[1].toFixed(6)} ${vertex[2].toFixed(6)}\n`;
-                }
-                stl += '    endloop\n';
-                stl += '  endfacet\n';
-            }
-            
-            stl += 'endsolid cookie_cutter\n';
-            return stl;
-        }
+// ══════════════════════════════════════════════════════════
+// CANVAS
+// ══════════════════════════════════════════════════════════
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvasWrap');
 
-        function calculateNormal(p1, p2, p3) {
-            const v1 = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-            const v2 = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-            
-            const nx = v1[1] * v2[2] - v1[2] * v2[1];
-            const ny = v1[2] * v2[0] - v1[0] * v2[2];
-            const nz = v1[0] * v2[1] - v1[1] * v2[0];
-            
-            const len = Math.sqrt(nx * nx + ny * ny + nz * nz);
-            
-            return [nx / len, ny / len, nz / len];
-        }
+function resizeCanvas() {
+  const r = wrap.getBoundingClientRect();
+  canvas.width = r.width; canvas.height = r.height;
+  if (S.img) fitImage();
+  render();
+}
+window.addEventListener('resize', resizeCanvas);
 
-        function downloadSTL(stl, filename) {
-            const blob = new Blob([stl], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
+function fitImage() {
+  const cw = canvas.width, ch = canvas.height;
+  const s = Math.min(cw / S.imgW, ch / S.imgH) * 0.88;
+  S.imgScale = s;
+  S.imgOffX = (cw - S.imgW * s) / 2;
+  S.imgOffY = (ch - S.imgH * s) / 2;
+}
 
-        function resetApp() {
-            document.getElementById('preview').style.display = 'none';
-            document.getElementById('actionButtons').style.display = 'none';
-            document.getElementById('status').className = 'status';
-            document.getElementById('fileInput').value = '';
-            document.getElementById('cameraInput').value = '';
-            processedImage = null;
-        }
+function imgToCanvas(x, y) {
+  return { x: x * S.imgScale + S.imgOffX, y: y * S.imgScale + S.imgOffY };
+}
+function canvasToImg(cx, cy) {
+  return { x: (cx - S.imgOffX) / S.imgScale, y: (cy - S.imgOffY) / S.imgScale };
+}
 
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = 'status ' + type;
-        }
-    </script>
+// ══════════════════════════════════════════════════════════
+// STEP NAV
+// ══════════════════════════════════════════════════════════
+function goToStep(n) {
+  if (n > 1 && !S.img) { toast('Upload eerst een afbeelding', 'error'); return; }
+  if (n > 2 && !S.pxPerMm) { toast('Stel eerst de schaal in', 'error'); return; }
+  if (n > 3 && S.polygon.length < 3) { toast('Traceer eerst een contour', 'error'); return; }
+  S.step = n;
+  if (n === 4) updatePreview();
+  if (n === 5) buildGeometry();
+  updateUI();
+  render();
+}
+
+function updateUI() {
+  const n = S.step;
+  [1,2,3,4,5].forEach(s => {
+    const el = document.getElementById('st'+s);
+    el.classList.remove('active','done','clickable');
+    const num = el.querySelector('.snum');
+    if (s === n) { el.classList.add('active'); num.textContent = s; }
+    else if (s < n) { el.classList.add('done','clickable'); num.textContent = ''; el.onclick = () => goToStep(s); }
+    else { num.textContent = s; el.onclick = null; }
+  });
+  document.querySelectorAll('.cgroup').forEach(el => el.classList.remove('active'));
+  document.getElementById('ctrl-'+n).classList.add('active');
+  const labels = ['Upload afbeelding','Klik 2 referentiepunten','Bewerk contour — versleep punten','Configureer vorm','Download STL'];
+  document.getElementById('modeLabel').textContent = labels[n-1];
+
+  // Mode badges step 3
+  const mAuto = document.getElementById('modeAuto');
+  const mMan = document.getElementById('modeManual');
+  const mEdit = document.getElementById('modeEdit');
+  mAuto.classList.toggle('on', n===3 && !S.drawMode && S.polygon.length===0);
+  mMan.classList.toggle('on', n===3 && S.drawMode);
+  mEdit.classList.toggle('on', n===3 && !S.drawMode && S.polygon.length>0);
+
+  // Draw label
+  document.getElementById('drawLabel').style.display = S.drawMode ? 'block' : 'none';
+  // Preview btn
+  const hasGeom = !!S.triData;
+  document.getElementById('preview3DBtn').disabled = !hasGeom;
+  if (document.getElementById('prevBtn4')) document.getElementById('prevBtn4').disabled = !hasGeom;
+}
+
+// ══════════════════════════════════════════════════════════
+// FILE UPLOAD
+// ══════════════════════════════════════════════════════════
+function handleUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      S.img = img; S.imgW = img.width; S.imgH = img.height;
+      document.getElementById('emptyState').style.display = 'none';
+      fitImage(); resetScale(); S.polygon = []; S.triData = null; S.stlBuffer = null;
+      goToStep(2);
+      toast(`Geladen: ${img.width}×${img.height}px`, 'success');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════════════════════
+// SCALE
+// ══════════════════════════════════════════════════════════
+function resetScale() {
+  S.scalePts = []; S.pxPerMm = null;
+  ['sp1','sp2'].forEach((id,i) => { const el=document.getElementById(id); el.className='spt'; el.textContent='Punt '+(i+1); });
+  document.getElementById('slvf').style.width = '0%';
+  document.getElementById('scaleBtn').disabled = true;
+  document.getElementById('scaleInfo').style.display = 'none';
+  document.getElementById('hdrScale').textContent = '—';
+  render();
+}
+
+function addScalePt(cx, cy) {
+  if (S.scalePts.length >= 2) return;
+  S.scalePts.push({cx, cy});
+  const n = S.scalePts.length;
+  const ip = canvasToImg(cx, cy);
+  const el = document.getElementById('sp'+n);
+  el.className = 'spt set';
+  el.textContent = `(${Math.round(ip.x)}, ${Math.round(ip.y)})`;
+  document.getElementById('slvf').style.width = (n*50)+'%';
+  if (n === 2) { document.getElementById('scaleBtn').disabled = false; updateScaleInfo(); }
+  render();
+}
+
+function updateScaleInfo() {
+  if (S.scalePts.length < 2) return;
+  const [p1, p2] = S.scalePts;
+  const pxDist = Math.hypot(p2.cx-p1.cx, p2.cy-p1.cy);
+  const mm = parseFloat(document.getElementById('refMm').value) || 0;
+  if (mm > 0) {
+    document.getElementById('infoLinePx').textContent = Math.round(pxDist)+'px';
+    document.getElementById('infoPxMm').textContent = (pxDist/(mm*S.imgScale)).toFixed(2)+' px/mm';
+    document.getElementById('scaleInfo').style.display = 'block';
+  }
+}
+document.getElementById('refMm').addEventListener('input', updateScaleInfo);
+
+function confirmScale() {
+  if (S.scalePts.length < 2) return;
+  const mm = parseFloat(document.getElementById('refMm').value);
+  if (!mm || mm <= 0) { toast('Vul een geldige maat in', 'error'); return; }
+  const [p1, p2] = S.scalePts;
+  const pxDist = Math.hypot(p2.cx-p1.cx, p2.cy-p1.cy);
+  S.pxPerMm = (pxDist / S.imgScale) / mm;
+  document.getElementById('hdrScale').textContent = S.pxPerMm.toFixed(2)+' px/mm';
+  toast(`Schaal: ${S.pxPerMm.toFixed(2)} px/mm`, 'success');
+  goToStep(3);
+}
+
+// ══════════════════════════════════════════════════════════
+// IMAGE PROCESSING
+// ══════════════════════════════════════════════════════════
+function getOffscreenData() {
+  const oc = document.createElement('canvas');
+  oc.width = S.imgW; oc.height = S.imgH;
+  const ctx2 = oc.getContext('2d');
+  ctx2.drawImage(S.img, 0, 0);
+  return ctx2.getImageData(0, 0, S.imgW, S.imgH);
+}
+
+function toGrayscale(id) {
+  const d = id.data, W = id.width, H = id.height;
+  const g = new Uint8Array(W*H);
+  for (let i=0;i<W*H;i++) g[i]=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];
+  return {g, W, H};
+}
+
+function gaussBlur(g, W, H, r) {
+  // Simple box blur approximation
+  const out = new Float32Array(W*H);
+  const tmp = new Float32Array(W*H);
+  // Horizontal
+  for (let y=0;y<H;y++) for (let x=0;x<W;x++) {
+    let s=0,c=0;
+    for (let dx=-r;dx<=r;dx++) { const nx=x+dx; if(nx>=0&&nx<W){s+=g[y*W+nx];c++;} }
+    tmp[y*W+x]=s/c;
+  }
+  // Vertical
+  for (let y=0;y<H;y++) for (let x=0;x<W;x++) {
+    let s=0,c=0;
+    for (let dy=-r;dy<=r;dy++) { const ny=y+dy; if(ny>=0&&ny<H){s+=tmp[ny*W+x];c++;} }
+    out[y*W+x]=s/c;
+  }
+  return out;
+}
+
+function morphDilate(bin, W, H, r) {
+  const out = new Uint8Array(bin);
+  for (let y=0;y<H;y++) for (let x=0;x<W;x++) if(bin[y*W+x])
+    for (let dy=-r;dy<=r;dy++) for (let dx=-r;dx<=r;dx++) {
+      const nx=x+dx,ny=y+dy;
+      if(nx>=0&&nx<W&&ny>=0&&ny<H) out[ny*W+nx]=1;
+    }
+  return out;
+}
+
+function fillBackground(bin, W, H) {
+  const out = new Uint8Array(bin);
+  const stack = [];
+  // Flood fill from border
+  for (let x=0;x<W;x++) { push(x,0); push(x,H-1); }
+  for (let y=0;y<H;y++) { push(0,y); push(W-1,y); }
+  function push(x,y) { if(out[y*W+x]===0){out[y*W+x]=2;stack.push(y*W+x);} }
+  while (stack.length) {
+    const idx=stack.pop(), x=idx%W, y=idx/W|0;
+    if(x>0&&out[y*W+x-1]===0){out[y*W+x-1]=2;stack.push(y*W+x-1);}
+    if(x<W-1&&out[y*W+x+1]===0){out[y*W+x+1]=2;stack.push(y*W+x+1);}
+    if(y>0&&out[(y-1)*W+x]===0){out[(y-1)*W+x]=2;stack.push((y-1)*W+x);}
+    if(y<H-1&&out[(y+1)*W+x]===0){out[(y+1)*W+x]=2;stack.push((y+1)*W+x);}
+  }
+  // 2=background, 0=outside not reached (interior or isolated), 1=line
+  const result = new Uint8Array(W*H);
+  for (let i=0;i<W*H;i++) result[i] = (out[i]!==2) ? 1 : 0;
+  return result;
+}
+
+// ══════════════════════════════════════════════════════════
+// MARCHING SQUARES
+// ══════════════════════════════════════════════════════════
+// Edge indices: 0=TOP, 1=RIGHT, 2=BOTTOM, 3=LEFT
+// Case index: bit3=TL, bit2=TR, bit1=BR, bit0=BL
+const MS_TABLE = [
+  [],[[3,2]],[[2,1]],[[3,1]],
+  [[1,0]],[[0,3],[2,1]],[[0,2]],[[0,3]],
+  [[0,3]],[[0,2]],[[0,1],[2,3]],[[1,0]],
+  [[3,1]],[[2,1]],[[3,2]],[],
+];
+
+function edgeMidpt(gx, gy, e) {
+  switch(e) {
+    case 0: return {x:gx+0.5, y:gy};
+    case 1: return {x:gx+1,   y:gy+0.5};
+    case 2: return {x:gx+0.5, y:gy+1};
+    case 3: return {x:gx,     y:gy+0.5};
+  }
+}
+
+function marchingSquares(bin, W, H) {
+  const segments = [];
+  for (let gy=0;gy<H-1;gy++) for (let gx=0;gx<W-1;gx++) {
+    const TL=bin[gy*W+gx], TR=bin[gy*W+gx+1];
+    const BR=bin[(gy+1)*W+gx+1], BL=bin[(gy+1)*W+gx];
+    const idx=(TL<<3)|(TR<<2)|(BR<<1)|BL;
+    for (const [e1,e2] of MS_TABLE[idx]) {
+      segments.push({a:edgeMidpt(gx,gy,e1), b:edgeMidpt(gx,gy,e2)});
+    }
+  }
+  return segments;
+}
+
+function connectSegments(segs) {
+  if (!segs.length) return [];
+  const key = p => `${Math.round(p.x*2)},${Math.round(p.y*2)}`;
+  const adj = new Map();
+  segs.forEach((s,i) => {
+    const ka=key(s.a), kb=key(s.b);
+    if(!adj.has(ka)) adj.set(ka,[]);
+    if(!adj.has(kb)) adj.set(kb,[]);
+    adj.get(ka).push({pt:s.b,si:i});
+    adj.get(kb).push({pt:s.a,si:i});
+  });
+  const used = new Set();
+  const chains = [];
+  for (let start=0;start<segs.length;start++) {
+    if (used.has(start)) continue;
+    const chain = [segs[start].a, segs[start].b];
+    used.add(start);
+    // Extend forward
+    let ext=true;
+    while(ext) {
+      ext=false;
+      const last=chain[chain.length-1], nbrs=adj.get(key(last))||[];
+      for (const {pt,si} of nbrs) if(!used.has(si)){used.add(si);chain.push(pt);ext=true;break;}
+    }
+    // Extend backward
+    ext=true;
+    while(ext) {
+      ext=false;
+      const first=chain[0], nbrs=adj.get(key(first))||[];
+      for (const {pt,si} of nbrs) if(!used.has(si)){used.add(si);chain.unshift(pt);ext=true;break;}
+    }
+    if (chain.length >= 6) chains.push(chain);
+  }
+  return chains;
+}
+
+function runAutoTrace() {
+  if (!S.img) return;
+  const thresh = parseInt(document.getElementById('thSlider').value);
+  const rdpEps = parseInt(document.getElementById('rdpSlider').value);
+  const {g, W, H} = toGrayscale(getOffscreenData());
+  const blurred = gaussBlur(g, W, H, 2);
+
+  // Threshold
+  let bin = new Uint8Array(W*H);
+  for (let i=0;i<W*H;i++) bin[i] = blurred[i] <= thresh ? 1 : 0;
+
+  // Check if too many dark pixels (might be inverted)
+  const darkCount = bin.reduce((s,v)=>s+v,0);
+  if (darkCount > W*H*0.5) for(let i=0;i<bin.length;i++) bin[i]=1-bin[i];
+
+  // Dilate to close small gaps
+  bin = morphDilate(bin, W, H, 2);
+  // Fill interior
+  bin = fillBackground(bin, W, H);
+
+  // Marching Squares
+  const segs = marchingSquares(bin, W, H);
+  if (!segs.length) { toast('Geen contour gevonden. Pas drempelwaarde aan.', 'error'); return; }
+
+  // Connect into chains
+  const chains = connectSegments(segs);
+  if (!chains.length) { toast('Kon geen gesloten contour vinden', 'error'); return; }
+
+  // Take longest chain
+  let best = chains[0];
+  for (const c of chains) if(c.length > best.length) best = c;
+
+  // RDP simplify
+  const closed = [...best, best[0]];
+  let simplified = rdp(closed, rdpEps);
+  simplified.pop();
+  simplified = smoothPolygon(simplified, 2);
+
+  S.polygon = simplified;
+  updatePolygonInfo();
+  S.triData = null; S.stlBuffer = null;
+  document.getElementById('traceNextBtn').disabled = false;
+  render();
+  toast(`Contour: ${simplified.length} punten (Marching Squares)`, 'success');
+}
+
+// ══════════════════════════════════════════════════════════
+// RDP + SMOOTH
+// ══════════════════════════════════════════════════════════
+function ptLineDist(p, a, b) {
+  const dx=b.x-a.x, dy=b.y-a.y;
+  if(!dx&&!dy) return Math.hypot(p.x-a.x,p.y-a.y);
+  const t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy)));
+  return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);
+}
+function rdp(pts, eps) {
+  if(pts.length<=2) return [...pts];
+  let maxD=0,idx=0;
+  for(let i=1;i<pts.length-1;i++){const d=ptLineDist(pts[i],pts[0],pts[pts.length-1]);if(d>maxD){maxD=d;idx=i;}}
+  if(maxD>eps){const l=rdp(pts.slice(0,idx+1),eps);const r=rdp(pts.slice(idx),eps);return[...l.slice(0,-1),...r];}
+  return [pts[0],pts[pts.length-1]];
+}
+function smoothPolygon(pts, iters=1) {
+  let p=[...pts];
+  for(let it=0;it<iters;it++){const n=p.length;const s=[];
+    for(let i=0;i<n;i++){const pv=p[(i-1+n)%n],cur=p[i],nx=p[(i+1)%n];
+      s.push({x:(pv.x+2*cur.x+nx.x)/4,y:(pv.y+2*cur.y+nx.y)/4});}p=s;}
+  return p;
+}
+function simplifyContour() {
+  if(!S.polygon.length) return;
+  const eps = parseInt(document.getElementById('rdpSlider').value)*2;
+  const cl=[...S.polygon,S.polygon[0]];
+  let s=rdp(cl,eps); s.pop();
+  S.polygon=s; updatePolygonInfo(); render();
+}
+function smoothContour() {
+  if(!S.polygon.length) return;
+  S.polygon=smoothPolygon(S.polygon,2); updatePolygonInfo(); render();
+}
+
+// ══════════════════════════════════════════════════════════
+// MANUAL DRAW MODE
+// ══════════════════════════════════════════════════════════
+function startManualDraw() {
+  S.drawMode = true; S.drawPts = []; S.drawMouse = null;
+  S.polygon = [];
+  updateUI(); render();
+  canvas.style.cursor = 'crosshair';
+  toast('Handmatig tekenen: klik om punten te plaatsen', 'info');
+}
+
+function finishManualDraw() {
+  if (S.drawPts.length >= 3) {
+    S.polygon = [...S.drawPts];
+    updatePolygonInfo();
+    document.getElementById('traceNextBtn').disabled = false;
+    toast(`Contour gesloten: ${S.polygon.length} punten`, 'success');
+  }
+  S.drawMode = false; S.drawPts = []; S.drawMouse = null;
+  canvas.style.cursor = 'default';
+  updateUI(); render();
+}
+
+function cancelManualDraw() {
+  S.drawMode = false; S.drawPts = []; S.drawMouse = null;
+  canvas.style.cursor = 'default';
+  updateUI(); render();
+  toast('Tekenen geannuleerd', 'info');
+}
+
+document.addEventListener('keydown', e => {
+  if (S.drawMode) {
+    if (e.key === 'Enter') finishManualDraw();
+    if (e.key === 'Escape') cancelManualDraw();
+    if ((e.key === 'Backspace' || e.key === 'Delete') && S.drawPts.length > 0) {
+      S.drawPts.pop(); render();
+    }
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+// SELF-INTERSECTION
+// ══════════════════════════════════════════════════════════
+function segIntersect(a, b, c, d) {
+  const dx1=b.x-a.x,dy1=b.y-a.y,dx2=d.x-c.x,dy2=d.y-c.y;
+  const denom=dx1*dy2-dy1*dx2;
+  if(Math.abs(denom)<1e-9) return null;
+  const t=((c.x-a.x)*dy2-(c.y-a.y)*dx2)/denom;
+  const u=((c.x-a.x)*dy1-(c.y-a.y)*dx1)/denom;
+  if(t>1e-6&&t<1-1e-6&&u>1e-6&&u<1-1e-6)
+    return {x:a.x+t*dx1,y:a.y+t*dy1,t,u};
+  return null;
+}
+
+function findSelfIntersections(pts) {
+  const n=pts.length, found=[];
+  for(let i=0;i<n;i++) for(let j=i+2;j<n;j++) {
+    if(i===0&&j===n-1) continue;
+    const pt=segIntersect(pts[i],pts[(i+1)%n],pts[j],pts[(j+1)%n]);
+    if(pt) found.push({i,j,pt});
+  }
+  return found;
+}
+
+function removeOneIntersection(pts) {
+  const n=pts.length;
+  for(let i=0;i<n;i++) for(let j=i+2;j<n;j++) {
+    if(i===0&&j===n-1) continue;
+    const pt=segIntersect(pts[i],pts[(i+1)%n],pts[j],pts[(j+1)%n]);
+    if(pt) {
+      const sub1=[...pts.slice(0,i+1),{x:pt.x,y:pt.y},...pts.slice(j+1)];
+      const sub2=[...pts.slice(i+1,j+1),{x:pt.x,y:pt.y}];
+      const a1=Math.abs(signedArea(sub1)),a2=Math.abs(signedArea(sub2));
+      return a1>=a2 ? sub1 : sub2;
+    }
+  }
+  return null;
+}
+
+function cleanIntersections() {
+  let p=[...S.polygon];
+  let iters=0;
+  while(iters++<30) {
+    const r=removeOneIntersection(p);
+    if(!r) break;
+    p=r;
+  }
+  S.polygon=p;
+  updatePolygonInfo();
+  render();
+  document.getElementById('cleanBtn').style.display='none';
+  toast('Zelf-intersecties hersteld', 'success');
+}
+
+function updatePolygonInfo() {
+  const n=S.polygon.length;
+  document.getElementById('infoPts').textContent=n;
+  document.getElementById('hdrPts').textContent=n;
+  if(n>0&&S.pxPerMm) {
+    let perim=0;
+    for(let i=0;i<n;i++){const a=S.polygon[i],b=S.polygon[(i+1)%n];perim+=Math.hypot(b.x-a.x,b.y-a.y);}
+    document.getElementById('infoPerim').textContent=(perim/S.pxPerMm).toFixed(1)+' mm';
+  }
+  // Check intersections
+  const isects=findSelfIntersections(S.polygon);
+  const iEl=document.getElementById('infoISect');
+  const cleanBtn=document.getElementById('cleanBtn');
+  if(isects.length===0){iEl.textContent='Geen';iEl.className='v ok';cleanBtn.style.display='none';}
+  else{iEl.textContent=isects.length+' gevonden!';iEl.className='v warn';cleanBtn.style.display='block';}
+  document.getElementById('traceNextBtn').disabled=n<3;
+}
+
+// ══════════════════════════════════════════════════════════
+// GEOMETRY
+// ══════════════════════════════════════════════════════════
+function signedArea(pts) {
+  let a=0,n=pts.length;
+  for(let i=0;i<n;i++){const j=(i+1)%n;a+=pts[i].x*pts[j].y-pts[j].x*pts[i].y;}
+  return a/2;
+}
+
+function offsetPolygon(pts, dist) {
+  const n=pts.length;
+  const area=signedArea(pts);
+  const sign=area>=0?1:-1;
+  const res=[];
+  for(let i=0;i<n;i++) {
+    const prev=pts[(i-1+n)%n],curr=pts[i],next=pts[(i+1)%n];
+    const e1n=normalize2({x:curr.x-prev.x,y:curr.y-prev.y});
+    const e2n=normalize2({x:next.x-curr.x,y:next.y-curr.y});
+    const n1={x:-e1n.y*sign,y:e1n.x*sign};
+    const n2={x:-e2n.y*sign,y:e2n.x*sign};
+    const bis=normalize2({x:n1.x+n2.x,y:n1.y+n2.y});
+    const cosH=bis.x*n1.x+bis.y*n1.y;
+    const scaledD=Math.abs(cosH)>0.15?dist/cosH:dist;
+    const clampedD=Math.sign(scaledD)*Math.min(Math.abs(scaledD),Math.abs(dist)*6);
+    res.push({x:curr.x+bis.x*clampedD,y:curr.y+bis.y*clampedD});
+  }
+  return res;
+}
+
+function normalize2(v){const l=Math.hypot(v.x,v.y);return l<1e-9?{x:0,y:0}:{x:v.x/l,y:v.y/l};}
+
+// ══════════════════════════════════════════════════════════
+// GEOMETRY / STL GENERATION
+// ══════════════════════════════════════════════════════════
+function buildGeometry() {
+  if(S.polygon.length<3) return;
+  const {polygon,pxPerMm,wallMm,heightMm,hasFlange}=S;
+
+  // Ensure CCW in screen space
+  let inner=[...polygon];
+  if(signedArea(inner)<0) inner.reverse();
+
+  // Clean self-intersections before offset
+  let ci=inner;
+  let it=0; while(it++<20){const r=removeOneIntersection(ci);if(!r)break;ci=r;}
+  inner=ci;
+
+  // Outer polygon
+  const outerPx=offsetPolygon(inner,wallMm*pxPerMm);
+  // Clean offset too
+  let outerC=outerPx; it=0;
+  while(it++<20){const r=removeOneIntersection(outerC);if(!r)break;outerC=r;}
+
+  // Convert px → mm, flip Y (screen→3D)
+  const toMm=pts=>pts.map(p=>({x:p.x/pxPerMm,y:-(p.y/pxPerMm)}));
+  const innerMm=toMm(inner);
+  const outerMm=toMm(outerC);
+
+  let flangeMm=null;
+  if(hasFlange){
+    // inner is CW in screen space (positive signedArea).
+    // Positive dist = inward (shrinks). Negative dist = outward (grows).
+    // Flange sits 3x wall thickness OUTSIDE the traced cutting edge.
+    const flangePx=offsetPolygon(inner,-3*wallMm*pxPerMm);
+    let fc=flangePx; it=0;
+    while(it++<20){const r=removeOneIntersection(fc);if(!r)break;fc=r;}
+    flangeMm=toMm(fc);
+  }
+
+  const tris=[];
+  const addTri=(a,b,c)=>{
+    const e1={x:b.x-a.x,y:b.y-a.y,z:b.z-a.z};
+    const e2={x:c.x-a.x,y:c.y-a.y,z:c.z-a.z};
+    const nx=e1.y*e2.z-e1.z*e2.y,ny=e1.z*e2.x-e1.x*e2.z,nz=e1.x*e2.y-e1.y*e2.x;
+    const l=Math.hypot(nx,ny,nz)||1;
+    tris.push({n:{x:nx/l,y:ny/l,z:nz/l},a,b,c});
+  };
+  const addQuad=(a,b,c,d)=>{addTri(a,b,c);addTri(a,c,d);};
+  const p3=(pt,z)=>({x:pt.x,y:pt.y,z});
+
+  const H=heightMm, n=innerMm.length;
+  // Use innerMm.length (might differ from outerMm.length after cleanup)
+  const on=outerMm.length;
+
+  // We'll use the minimum length to be safe
+  const N=Math.min(n,on);
+
+  for(let i=0;i<N;i++){
+    const j=(i+1)%N;
+    // Outer wall
+    addQuad(p3(outerMm[i],0),p3(outerMm[i],H),p3(outerMm[j],H),p3(outerMm[j],0));
+    // Inner wall
+    addQuad(p3(innerMm[j],0),p3(innerMm[j],H),p3(innerMm[i],H),p3(innerMm[i],0));
+    // Bottom ring
+    addTri(p3(innerMm[i],0),p3(outerMm[j],0),p3(outerMm[i],0));
+    addTri(p3(innerMm[i],0),p3(innerMm[j],0),p3(outerMm[j],0));
+    // Top ring
+    addTri(p3(innerMm[i],H),p3(outerMm[i],H),p3(outerMm[j],H));
+    addTri(p3(innerMm[i],H),p3(outerMm[j],H),p3(innerMm[j],H));
+
+    if(hasFlange&&flangeMm){
+      const fn=flangeMm.length, FH=H+2*wallMm;
+      const fi=i%fn, fj=(i+1)%fn;
+      // Flange ring: from outerMm (outer surface of cutter) to flangeMm (3x wall further out)
+      // outerMm is the outside of the cutting blade — the cutter top ring ends there.
+      // Using innerMm here left a gap between innerMm→outerMm at the top.
+      addQuad(p3(flangeMm[fi],H),p3(flangeMm[fi],FH),p3(flangeMm[fj],FH),p3(flangeMm[fj],H)); // outer flange wall
+      addQuad(p3(outerMm[j],H),p3(outerMm[j],FH),p3(outerMm[i],FH),p3(outerMm[i],H));         // inner flange wall = outer cutter surface
+      addTri(p3(outerMm[i],H),p3(flangeMm[fj],H),p3(flangeMm[fi],H));   // bottom ring
+      addTri(p3(outerMm[i],H),p3(outerMm[j],H),p3(flangeMm[fj],H));
+      addTri(p3(outerMm[i],FH),p3(flangeMm[fi],FH),p3(flangeMm[fj],FH)); // top ring
+      addTri(p3(outerMm[i],FH),p3(flangeMm[fj],FH),p3(outerMm[j],FH));
+    }
+  }
+
+  // Build binary STL
+  const buf=new ArrayBuffer(84+tris.length*50);
+  const dv=new DataView(buf);
+  const hdr='CookieCut v2';
+  for(let i=0;i<80;i++) dv.setUint8(i,i<hdr.length?hdr.charCodeAt(i):0);
+  dv.setUint32(80,tris.length,true);
+  let off=84;
+  for(const {n,a,b,c} of tris){
+    dv.setFloat32(off,n.x,true);off+=4; dv.setFloat32(off,n.y,true);off+=4; dv.setFloat32(off,n.z,true);off+=4;
+    for(const v of [a,b,c]){dv.setFloat32(off,v.x,true);off+=4;dv.setFloat32(off,v.y,true);off+=4;dv.setFloat32(off,v.z,true);off+=4;}
+    dv.setUint16(off,0,true);off+=2;
+  }
+
+  const xs=innerMm.map(p=>p.x),ys=innerMm.map(p=>p.y);
+  const bw=(Math.max(...xs)-Math.min(...xs)).toFixed(1);
+  const bh=(Math.max(...ys)-Math.min(...ys)).toFixed(1);
+
+  S.triData={tris,innerMm,outerMm,flangeMm,centerX:(Math.max(...xs)+Math.min(...xs))/2,centerY:(Math.max(...ys)+Math.min(...ys))/2};
+  S.stlBuffer=buf;
+
+  document.getElementById('ei-t').textContent=tris.length;
+  document.getElementById('ei-s').textContent=(buf.byteLength/1024).toFixed(1)+' KB';
+  document.getElementById('ei-bw').textContent=bw+' mm';
+  document.getElementById('ei-bh').textContent=bh+' mm';
+
+  document.getElementById('preview3DBtn').disabled=false;
+  if(document.getElementById('prevBtn4')) document.getElementById('prevBtn4').disabled=false;
+
+  render();
+  toast(`STL: ${tris.length} driehoeken`, 'success');
+}
+
+function downloadSTL() {
+  if(!S.stlBuffer){toast('Geen STL beschikbaar','error');return;}
+  const blob=new Blob([S.stlBuffer],{type:'application/octet-stream'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='koekjesvorm.stl'; a.click();
+  URL.revokeObjectURL(url);
+  toast('STL gedownload!','success');
+}
+
+// ══════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════
+function toggleFlange() {
+  S.hasFlange=!S.hasFlange;
+  document.getElementById('flensLabel').classList.toggle('checked',S.hasFlange);
+  document.getElementById('flensBox').textContent = S.hasFlange ? '✓' : '';
+  document.getElementById('ci-fr').style.display=S.hasFlange?'flex':'none';
+  updatePreview();
+}
+
+function updatePreview() {
+  S.wallMm=parseFloat(document.getElementById('wallMm').value)||2;
+  S.heightMm=parseFloat(document.getElementById('heightMm').value)||15;
+  const fh=S.hasFlange?S.heightMm+2*S.wallMm:S.heightMm;
+  document.getElementById('ci-h').textContent=S.heightMm.toFixed(1)+' mm';
+  document.getElementById('ci-th').textContent=fh.toFixed(1)+' mm';
+  document.getElementById('ci-w').textContent=S.wallMm.toFixed(1)+' mm';
+  document.getElementById('hdrH').textContent=fh.toFixed(1)+' mm';
+  render();
+}
+
+// ══════════════════════════════════════════════════════════
+// 3D PREVIEW (Three.js)
+// ══════════════════════════════════════════════════════════
+let three = null;
+
+function openPreview() {
+  if(!S.triData) { buildGeometry(); }
+  if(!S.triData) { toast('Genereer eerst de geometrie (stap 4→5)', 'error'); return; }
+  document.getElementById('previewModal').classList.add('open');
+  initThree();
+}
+
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('open');
+  if(three) { three.renderer.dispose(); three=null; }
+}
+
+function initThree() {
+  const pc = document.getElementById('previewCanvas');
+  const W=pc.clientWidth, H=pc.clientHeight;
+  pc.width=W; pc.height=H;
+
+  const renderer = new THREE.WebGLRenderer({canvas:pc, antialias:true});
+  renderer.setSize(W,H,false);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x040408);
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x040408, 300, 800);
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x223355, 0.8));
+  const sun=new THREE.DirectionalLight(0xf59e0b,1.4);
+  sun.position.set(80,120,60); sun.castShadow=true;
+  sun.shadow.camera.near=1; sun.shadow.camera.far=500;
+  sun.shadow.mapSize.width=2048; sun.shadow.mapSize.height=2048;
+  scene.add(sun);
+  const fill=new THREE.DirectionalLight(0x22d3ee,0.35);
+  fill.position.set(-60,30,-40); scene.add(fill);
+  const rim=new THREE.PointLight(0xffffff,0.2,200);
+  rim.position.set(0,100,0); scene.add(rim);
+
+  // Grid
+  const grid=new THREE.GridHelper(400,30,0x1a1a24,0x111118);
+  grid.receiveShadow=true; scene.add(grid);
+
+  // Build mesh from triangle data
+  const {tris,centerX,centerY}=S.triData;
+  const positions=[],normals=[];
+  for(const {n,a,b,c} of tris){
+    // Convert STL coords → Three.js coords
+    // STL: x=right, y=up (flipped from screen), z=height
+    // Three.js: x=right, y=up, z=toward viewer
+    // So: three.x=stl.x-cx, three.y=stl.z, three.z=-(stl.y-cy)
+    const cv=(v)=>({tx:v.x-centerX, ty:v.z, tz:-(v.y-centerY)});
+    for(const v of [a,b,c]){const t=cv(v);positions.push(t.tx,t.ty,t.tz);}
+    // Remap normal similarly
+    normals.push(n.x,n.z,-n.y, n.x,n.z,-n.y, n.x,n.z,-n.y);
+  }
+
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  geo.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
+
+  const mat=new THREE.MeshStandardMaterial({
+    color:0xf59e0b, metalness:0.15, roughness:0.55, side:THREE.DoubleSide,
+    envMapIntensity:0.5,
+  });
+
+  const mesh=new THREE.Mesh(geo,mat);
+  mesh.castShadow=true; mesh.receiveShadow=true;
+  // Sit on grid
+  const box=new THREE.Box3().setFromObject(mesh);
+  mesh.position.y=-box.min.y;
+  scene.add(mesh);
+
+  // Wireframe overlay (subtle)
+  const wireMat=new THREE.MeshBasicMaterial({color:0x000000,wireframe:true,transparent:true,opacity:0.04});
+  const wireMesh=new THREE.Mesh(geo,wireMat);
+  wireMesh.position.copy(mesh.position); scene.add(wireMesh);
+
+  // Camera
+  const camera=new THREE.PerspectiveCamera(45,W/H,0.1,2000);
+  const size=S.heightMm*2+50;
+  let theta=0.5, phi=1.1, radius=size*3.5;
+
+  function updateCam(){
+    camera.position.set(
+      radius*Math.sin(phi)*Math.sin(theta),
+      radius*Math.cos(phi),
+      radius*Math.sin(phi)*Math.cos(theta)
+    );
+    camera.lookAt(0,S.heightMm/2,0);
+    renderer.render(scene,camera);
+  }
+  updateCam();
+
+  // Orbit via mouse drag
+  let orbiting=false, panning=false, lastX=0,lastY=0;
+  let panX=0,panY=0;
+
+  pc.addEventListener('mousedown',e=>{
+    if(e.button===2){panning=true;}else{orbiting=true;}
+    lastX=e.clientX; lastY=e.clientY;
+  });
+  pc.addEventListener('contextmenu',e=>e.preventDefault());
+  window.addEventListener('mousemove',e=>{
+    if(orbiting){
+      theta-=(e.clientX-lastX)*0.012;
+      phi+=(e.clientY-lastY)*0.008;
+      phi=Math.max(0.1,Math.min(Math.PI-0.1,phi));
+    }
+    if(panning){
+      scene.position.x+=(e.clientX-lastX)*0.05;
+      scene.position.z+=(e.clientY-lastY)*0.05;
+    }
+    if(orbiting||panning){lastX=e.clientX;lastY=e.clientY;updateCam();}
+  });
+  window.addEventListener('mouseup',()=>{orbiting=false;panning=false;});
+  pc.addEventListener('wheel',e=>{
+    radius*=e.deltaY>0?1.08:0.92;
+    radius=Math.max(10,Math.min(2000,radius));
+    updateCam();e.preventDefault();
+  },{passive:false});
+
+  document.getElementById('previewInfoTxt').textContent =
+    `${tris.length} driehoeken · ${S.heightMm}mm hoog · wanddikte ${S.wallMm}mm`;
+
+  three={renderer,scene,camera};
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER (2D canvas)
+// ══════════════════════════════════════════════════════════
+function render() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!S.img) return;
+
+  // Image
+  ctx.save();
+  ctx.globalAlpha=S.step>=3?0.3:0.82;
+  ctx.drawImage(S.img,S.imgOffX,S.imgOffY,S.imgW*S.imgScale,S.imgH*S.imgScale);
+  ctx.restore();
+
+  // Scale points (step 2)
+  if(S.step===2) renderScalePts();
+
+  // Manual draw preview
+  if(S.drawMode) renderDrawMode();
+
+  // Polygon (step 3+)
+  if(S.step>=3&&S.polygon.length>0) {
+    renderPolygon();
+    if(S.step>=4) renderOffsetPreview();
+  }
+}
+
+function renderScalePts(){
+  const pts=S.scalePts;
+  if(pts.length===2){
+    ctx.save();
+    ctx.strokeStyle='rgba(34,211,238,.7)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(pts[0].cx,pts[0].cy);ctx.lineTo(pts[1].cx,pts[1].cy);ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+  }
+  for(const p of pts){
+    ctx.beginPath();ctx.arc(p.cx,p.cy,5,0,Math.PI*2);ctx.fillStyle='#22d3ee';ctx.fill();
+    ctx.beginPath();ctx.arc(p.cx,p.cy,10,0,Math.PI*2);ctx.strokeStyle='rgba(34,211,238,.3)';ctx.lineWidth=1;ctx.stroke();
+  }
+}
+
+function renderDrawMode(){
+  const pts=S.drawPts;
+  if(pts.length===0&&!S.drawMouse) return;
+  ctx.save();
+  ctx.strokeStyle='rgba(167,139,250,.9)';ctx.lineWidth=2;ctx.setLineDash([5,3]);
+  if(pts.length>0){
+    ctx.beginPath();
+    const p0=imgToCanvas(pts[0].x,pts[0].y);
+    ctx.moveTo(p0.x,p0.y);
+    for(let i=1;i<pts.length;i++){const p=imgToCanvas(pts[i].x,pts[i].y);ctx.lineTo(p.x,p.y);}
+    if(S.drawMouse) ctx.lineTo(S.drawMouse.x,S.drawMouse.y);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // Draw vertices
+  for(const pt of pts){
+    const c=imgToCanvas(pt.x,pt.y);
+    ctx.beginPath();ctx.arc(c.x,c.y,5,0,Math.PI*2);ctx.fillStyle='var(--purple,#a78bfa)';ctx.fill();
+  }
+  // Snap indicator to start
+  if(pts.length>2&&S.drawMouse){
+    const p0=imgToCanvas(pts[0].x,pts[0].y);
+    const d=Math.hypot(S.drawMouse.x-p0.x,S.drawMouse.y-p0.y);
+    if(d<20){
+      ctx.beginPath();ctx.arc(p0.x,p0.y,14,0,Math.PI*2);
+      ctx.strokeStyle='rgba(167,139,250,.6)';ctx.lineWidth=1.5;ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawPoly(pts, close=true){
+  if(!pts.length) return;
+  const c=pts.map(p=>imgToCanvas(p.x,p.y));
+  ctx.beginPath();ctx.moveTo(c[0].x,c[0].y);
+  for(let i=1;i<c.length;i++) ctx.lineTo(c[i].x,c[i].y);
+  if(close) ctx.closePath();
+}
+
+function renderPolygon(){
+  ctx.save();
+  // Fill
+  drawPoly(S.polygon);
+  ctx.fillStyle='rgba(245,158,11,.07)';ctx.fill();
+  // Outline
+  drawPoly(S.polygon);
+  ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;ctx.setLineDash([]);ctx.stroke();
+
+  // Hover edge
+  if(S.hovEdge!==null&&S.step===3){
+    const n=S.polygon.length;
+    const a=imgToCanvas(S.polygon[S.hovEdge].x,S.polygon[S.hovEdge].y);
+    const b=imgToCanvas(S.polygon[(S.hovEdge+1)%n].x,S.polygon[(S.hovEdge+1)%n].y);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle='#22d3ee';ctx.lineWidth=3;ctx.stroke();
+    if(S.hovPt){ctx.beginPath();ctx.arc(S.hovPt.x,S.hovPt.y,4,0,Math.PI*2);ctx.fillStyle='#22d3ee';ctx.fill();}
+  }
+
+  // Vertices (step 3 only)
+  if(S.step===3){
+    const cpts=S.polygon.map((p,i)=>({...imgToCanvas(p.x,p.y),i}));
+    for(const {x,y,i} of cpts){
+      ctx.beginPath();ctx.arc(x,y,i===S.dragging?7:4.5,0,Math.PI*2);
+      ctx.fillStyle=i===S.dragging?'#f59e0b':'#0f0f18';ctx.fill();
+      ctx.strokeStyle='#f59e0b';ctx.lineWidth=1.5;ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function renderOffsetPreview(){
+  if(!S.pxPerMm) return;
+  const wallPx=S.wallMm*S.pxPerMm;
+  let inner=[...S.polygon]; if(signedArea(inner)<0) inner.reverse();
+  const outer=offsetPolygon(inner,wallPx);
+
+  ctx.save();
+  drawPoly(outer);
+  ctx.strokeStyle='rgba(74,222,128,.8)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.stroke();
+  if(S.hasFlange){
+    // Negative dist = outward from CW polygon (screen space)
+    const flange=offsetPolygon(inner,-3*S.wallMm*S.pxPerMm);
+    drawPoly(flange);
+    ctx.strokeStyle='rgba(34,211,238,.5)';ctx.lineWidth=1;ctx.setLineDash([2,4]);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Legend
+  ctx.font='10px "Courier New"';ctx.fillStyle='#f59e0b';ctx.fillText('── Snijrand',14,canvas.height-50);
+  ctx.fillStyle='rgba(74,222,128,.9)';ctx.fillText('- - Buitenwand',14,canvas.height-34);
+  if(S.hasFlange){ctx.fillStyle='rgba(34,211,238,.8)';ctx.fillText('·· Flens',14,canvas.height-18);}
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════════
+// MOUSE INPUT
+// ══════════════════════════════════════════════════════════
+function canvasXY(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+
+function nearVtx(cx,cy,thresh=12){
+  const n=S.polygon.length; let best=-1,bestD=thresh;
+  for(let i=0;i<n;i++){const p=imgToCanvas(S.polygon[i].x,S.polygon[i].y);const d=Math.hypot(p.x-cx,p.y-cy);if(d<bestD){bestD=d;best=i;}}
+  return best;
+}
+function nearEdge(cx,cy,thresh=12){
+  const n=S.polygon.length; let best=-1,bestD=thresh,bestPt=null;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    const a=imgToCanvas(S.polygon[i].x,S.polygon[i].y);
+    const b=imgToCanvas(S.polygon[j].x,S.polygon[j].y);
+    const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;
+    if(!l2) continue;
+    const t=Math.max(0,Math.min(1,((cx-a.x)*dx+(cy-a.y)*dy)/l2));
+    const px=a.x+t*dx,py=a.y+t*dy;
+    const d=Math.hypot(cx-px,cy-py);
+    if(d<bestD){bestD=d;best=i;bestPt={x:px,y:py};}
+  }
+  return{edge:best,pt:bestPt};
+}
+
+canvas.addEventListener('mousedown',e=>{
+  const {x,y}=canvasXY(e);
+  if(S.step===2&&S.img){if(S.scalePts.length<2)addScalePt(x,y);return;}
+  if(S.drawMode&&S.step===3){
+    const imgPt=canvasToImg(x,y);
+    // Check snap to start
+    if(S.drawPts.length>2){
+      const p0=imgToCanvas(S.drawPts[0].x,S.drawPts[0].y);
+      if(Math.hypot(x-p0.x,y-p0.y)<18){finishManualDraw();return;}
+    }
+    S.drawPts.push(imgPt); render(); return;
+  }
+  if(S.step===3){
+    const v=nearVtx(x,y);
+    if(v>=0){S.dragging=v;return;}
+    const{edge,pt}=nearEdge(x,y,16);
+    if(edge>=0){const ip=canvasToImg(x,y);S.polygon.splice(edge+1,0,ip);S.dragging=edge+1;updatePolygonInfo();render();}
+  }
+});
+
+canvas.addEventListener('mousemove',e=>{
+  const{x,y}=canvasXY(e);
+  if(S.drawMode){S.drawMouse={x,y};render();return;}
+  if(S.step===3&&S.dragging!==null){
+    S.polygon[S.dragging]=canvasToImg(x,y);updatePolygonInfo();render();return;
+  }
+  if(S.step===3&&S.polygon.length>0){
+    const v=nearVtx(x,y);
+    if(v>=0){S.hovEdge=null;S.hovPt=null;canvas.style.cursor='grab';}
+    else{const{edge,pt}=nearEdge(x,y,14);S.hovEdge=edge;S.hovPt=pt;canvas.style.cursor=edge>=0?'crosshair':'default';}
+    render();
+  }
+});
+
+canvas.addEventListener('mouseup',()=>{S.dragging=null;});
+canvas.addEventListener('mouseleave',()=>{S.dragging=null;S.hovEdge=null;S.hovPt=null;S.drawMouse=null;render();});
+
+canvas.addEventListener('dblclick',e=>{
+  if(S.drawMode){finishManualDraw();return;}
+  if(S.step!==3) return;
+  const{x,y}=canvasXY(e);
+  const v=nearVtx(x,y,16);
+  if(v>=0&&S.polygon.length>3){S.polygon.splice(v,1);updatePolygonInfo();render();}
+});
+
+// ══════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════
+let tTimer;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='show'+(type?' '+type:'');
+  clearTimeout(tTimer); tTimer=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+resizeCanvas();
+updateUI();
+</script>
 </body>
 </html>
