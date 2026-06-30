@@ -29,9 +29,11 @@ Can't wait to start baking? Check out the working app here: https://pimo131.gith
 ## Features
 
 ### Contour Detection — Marching Squares
-- Gaussian blur → binary threshold (adjustable) → flood-fill background removal → Marching Squares iso-contour → Ramer-Douglas-Peucker simplification → Chaikin smoothing
-- Works on photos, hand-drawn sketches, logos, and silhouettes
-- Adjustable threshold slider for tricky images (dark-on-light and light-on-dark both supported)
+- Pipeline: ink score (distance from white) → blur → threshold → morphological close → flood-fill the interior → Marching Squares iso-contour → Ramer-Douglas-Peucker simplification
+- **Colour-aware**: a pixel's "ink" value is `255 - min(R,G,B)`, so a **black** line and a **blue** line on white are detected equally well. Plain grayscale brightness fails here — a saturated blue line is ~50% luminance and nearly invisible to a brightness threshold.
+- **Region, not edge**: the closed line is flood-filled into one solid blob, so the trace is a single clean contour instead of the inner+outer double edges that an edge detector produces on a stroke.
+- **Gap tolerant**: a morphological close bridges small breaks where the pen lifted. If the line is genuinely open, it falls back to tracing the stroke outline so you still get a usable contour.
+- Adjustable threshold slider for tricky images — lower it for thin or light-coloured lines.
 
 ### Manual Draw Mode
 - Click to place points, Backspace to undo last point
@@ -78,7 +80,7 @@ Can't wait to start baking? Check out the working app here: https://pimo131.gith
 
 No npm, no build step, no internet connection required after the file is loaded.
 
-> **Tip:** Dark lines on a light background give the best auto-trace results. For complex photos, lower the threshold slider until the shape fills solid, then click Auto-Trace.
+> **Tip:** A closed black or blue line on a white background gives the best auto-trace results. For thin or light-coloured lines, lower the threshold slider, then click Auto-Trace. Enable Debug mode to see which contour was chosen and whether it traced a filled shape or just the stroke.
 
 ---
 
